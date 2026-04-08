@@ -25,4 +25,7 @@ public class Produto extends PanacheEntityBase {
 
     @Column(name = "quantidade_estoque", nullable = false)
     public Integer quantidadeEstoque;
+
+    @Column(name = "ativo", nullable = false)
+    public Boolean ativo = true;
 }

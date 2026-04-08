@@ -2,7 +2,7 @@ package br.com.projaplicado.produto;
 
 import br.com.projaplicado.produto.api.ProdutoDTO;
 import br.com.projaplicado.produto.domain.Produto;
-import br.com.projaplicado.produto.service.ProdutoService;
+import br.com.projaplicado.produto.domain.repository.ProdutoRepository;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -21,11 +21,11 @@ import java.util.stream.Collectors;
 public class ProdutoResource {
 
     @Inject
-    ProdutoService produtoService;
+    ProdutoRepository produtoRepository;
 
     @GET
     public List<ProdutoDTO> listar() {
-        return produtoService.listarTodos().stream()
+        return produtoRepository.listAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -33,7 +33,7 @@ public class ProdutoResource {
     @GET
     @Path("/{id_produto}")
     public ProdutoDTO buscar(@PathParam("id_produto") Long idProduto) {
-        Produto produto = produtoService.buscarPorId(idProduto);
+        Produto produto = produtoRepository.findById(idProduto);
         if (produto == null) {
             throw new NotFoundException("Produto não encontrado: " + idProduto);
         }
@@ -43,7 +43,12 @@ public class ProdutoResource {
     @POST
     @Transactional
     public Response criar(@Valid ProdutoDTO dto) {
-        Produto produto = produtoService.criar(dto);
+        Produto produto = new Produto();
+        produto.nome = dto.nome.trim();
+        produto.descricao = dto.descricao.trim();
+        produto.preco = dto.preco;
+        produto.quantidadeEstoque = dto.quantidadeEstoque;
+        produtoRepository.persistAndFlush(produto);
 
         return Response.created(URI.create("/produtos/" + produto.idProduto))
                 .entity(toDTO(produto))
@@ -54,7 +59,27 @@ public class ProdutoResource {
     @Path("/{id_produto}")
     @Transactional
     public ProdutoDTO atualizar(@PathParam("id_produto") Long idProduto, ProdutoDTO dto) {
-        Produto produto = produtoService.atualizar(idProduto, dto);
+        Produto produto = produtoRepository.findById(idProduto);
+        if (produto == null) {
+            throw new NotFoundException("Produto não encontrado: " + idProduto);
+        }
+
+        if (dto.nome != null && !dto.nome.trim().isEmpty()) {
+            produto.nome = dto.nome.trim();
+        }
+
+        if (dto.descricao != null && !dto.descricao.trim().isEmpty()) {
+            produto.descricao = dto.descricao.trim();
+        }
+
+        if (dto.preco != null) {
+            produto.preco = dto.preco;
+        }
+
+        if (dto.quantidadeEstoque != null) {
+            produto.quantidadeEstoque = dto.quantidadeEstoque;
+        }
+
         return toDTO(produto);
     }
 
@@ -62,10 +87,11 @@ public class ProdutoResource {
     @Path("/{id_produto}")
     @Transactional
     public void deletar(@PathParam("id_produto") Long idProduto) {
-        boolean deletado = produtoService.deletar(idProduto);
-        if (!deletado) {
+        Produto produto = produtoRepository.findById(idProduto);
+        if (produto == null) {
             throw new NotFoundException("Produto não encontrado: " + idProduto);
         }
+        produto.ativo = false;
     }
 
     private ProdutoDTO toDTO(Produto produto) {
