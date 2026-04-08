@@ -1,6 +1,8 @@
 package br.com.projaplicado.pedido.domain;
 
 import br.com.projaplicado.itempedido.domain.ItemPedido;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import br.com.projaplicado.pedido.api.FormaPagamento;
 import br.com.projaplicado.pedido.api.StatusPedido;
 import br.com.projaplicado.pedido.api.TipoPedido;
@@ -27,12 +29,19 @@ public class Pedido extends PanacheEntityBase {
     public LocalDateTime data;
 
     @Column(name = "forma_pagamento", nullable = false)
-    @Convert(converter = FormaPagamentoConverter.class)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     public FormaPagamento formaPagamento;
 
     @Column(name = "status", nullable = false)
-    @Convert(converter = StatusPedidoConverter.class)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
     public StatusPedido status;
+
+    @Column(name = "tipo_pedido", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    public TipoPedido tipoPedido;
 
     @Column(name = "valor", nullable = false)
     public java.math.BigDecimal valor = java.math.BigDecimal.ZERO;
@@ -40,12 +49,7 @@ public class Pedido extends PanacheEntityBase {
     @Column(name = "observacao")
     public String observacao;
 
-    @Column(name = "tipo_pedido", nullable = false)
-    @Convert(converter = TipoPedidoConverter.class)
-    public TipoPedido tipoPedido;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "id_pedido")
+    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     public List<ItemPedido> itens = new ArrayList<>();
 
 }

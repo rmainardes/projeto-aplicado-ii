@@ -55,12 +55,13 @@ public class PedidoService {
         pedido.data = LocalDateTime.now();
         pedido.formaPagamento = dto.formaPagamento;
         pedido.tipoPedido = dto.tipoPedido;
-        pedido.status = StatusPedido.PENDENTE;
+        pedido.status = StatusPedido.pendente;
         pedido.observacao = dto.observacao != null && dto.observacao.trim().isEmpty() ? null : dto.observacao;
         pedido.valor = BigDecimal.ZERO;
 
         for (ItemPedidoDTO item : dto.itens) {
             ItemPedido itemPedido = new ItemPedido();
+            itemPedido.pedido = pedido;
             itemPedido.idProduto = item.idProduto;
             itemPedido.quantidade = item.quantidade;
             itemPedido.precoUnitario = produtos.get(item.idProduto).preco;
@@ -84,7 +85,7 @@ public class PedidoService {
     @Transactional
     public void estornarEstoqueDoPedido(Long idPedido) {
         List<ItemPedido> itens = entityManager
-                .createQuery("from ItemPedido i where i.idPedido = :idPedido", ItemPedido.class)
+                .createQuery("from ItemPedido i where i.pedido.idPedido = :idPedido", ItemPedido.class)
                 .setParameter("idPedido", idPedido)
                 .getResultList();
         for (ItemPedido item : itens) {
@@ -102,7 +103,7 @@ public class PedidoService {
         if (pedido == null) {
             throw new NotFoundException("Pedido não encontrado: " + idPedido);
         }
-        if (pedido.status != StatusPedido.PENDENTE) {
+        if (pedido.status != StatusPedido.pendente) {
             throw new BadRequestException("Só é possível adicionar itens a pedidos com status PENDENTE.");
         }
 
@@ -118,7 +119,7 @@ public class PedidoService {
         produto.quantidadeEstoque = produto.quantidadeEstoque - dto.quantidade;
 
         ItemPedido itemPedido = new ItemPedido();
-        itemPedido.idPedido = idPedido;
+        itemPedido.pedido = pedido;
         itemPedido.idProduto = dto.idProduto;
         itemPedido.quantidade = dto.quantidade;
         itemPedido.precoUnitario = produto.preco;
@@ -135,12 +136,12 @@ public class PedidoService {
     public void removerItem(Long idPedido, Long idItem) {
         Pedido pedido = entityManager.find(Pedido.class, idPedido);
         if (pedido == null) throw new NotFoundException("Pedido não encontrado: " + idPedido);
-        if (pedido.status != StatusPedido.PENDENTE) {
+        if (pedido.status != StatusPedido.pendente) {
             throw new BadRequestException("Só é possível remover itens de pedidos com status PENDENTE.");
         }
 
         ItemPedido item = entityManager.find(ItemPedido.class, idItem);
-        if (item == null || !item.idPedido.equals(idPedido)) {
+        if (item == null || !item.pedido.idPedido.equals(idPedido)) {
             throw new NotFoundException("Item não pertence a este pedido ou não existe.");
         }
 

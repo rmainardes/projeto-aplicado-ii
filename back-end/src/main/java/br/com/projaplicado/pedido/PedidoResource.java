@@ -79,7 +79,7 @@ public class PedidoResource {
         }
 
         if (dto.status != null) {
-            if (dto.status == StatusPedido.CANCELADO && pedido.status != StatusPedido.CANCELADO) {
+            if (dto.status == StatusPedido.cancelado && pedido.status != StatusPedido.cancelado) {
                 pedidoService.estornarEstoqueDoPedido(pedido.idPedido);
             }
             pedido.status = dto.status;
@@ -136,7 +136,7 @@ public class PedidoResource {
     private ItemPedidoDTO toItemDTO(ItemPedido c) {
         ItemPedidoDTO dto = new ItemPedidoDTO();
         dto.idItem = c.idItem;
-        dto.idPedido = c.idPedido;
+        dto.idPedido = c.pedido.idPedido;
         dto.idProduto = c.idProduto;
         dto.quantidade = c.quantidade;
         dto.precoUnitario = c.precoUnitario;

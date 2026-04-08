@@ -20,7 +20,6 @@ public class PedidoCriacaoDTO {
     public TipoPedido tipoPedido;
 
     @NotEmpty(message = "itens nao pode ser vazio")
-    @Valid
-    public List<ItemPedidoDTO> itens;
+    public List<@Valid ItemPedidoDTO> itens;
 }
 

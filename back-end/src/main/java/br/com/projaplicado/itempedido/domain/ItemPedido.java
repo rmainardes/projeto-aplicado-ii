@@ -1,5 +1,6 @@
 package br.com.projaplicado.itempedido.domain;
 
+import br.com.projaplicado.pedido.domain.Pedido;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.*;
 
@@ -14,8 +15,9 @@ public class ItemPedido extends PanacheEntityBase {
     @Column(name = "id_item")
     public Long idItem;
 
-    @Column(name = "id_pedido", nullable = false)
-    public Long idPedido;
+    @ManyToOne
+    @JoinColumn(name = "id_pedido", nullable = false)
+    public Pedido pedido;
 
     @Column(name = "id_produto", nullable = false)
     public Long idProduto;
