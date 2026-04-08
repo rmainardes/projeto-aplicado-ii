@@ -16,7 +16,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.Collection;import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +26,7 @@ public class PedidoService {
 
     @Inject
     EntityManager entityManager;
+
 
     @Transactional
     public Pedido criarPedido(PedidoCriacaoDTO dto) {
@@ -158,5 +159,4 @@ public class PedidoService {
 
         entityManager.remove(item);
     }
-
 }

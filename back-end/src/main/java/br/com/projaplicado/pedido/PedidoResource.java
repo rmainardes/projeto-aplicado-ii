@@ -6,9 +6,9 @@ import br.com.projaplicado.pedido.api.PedidoCriacaoDTO;
 import br.com.projaplicado.pedido.api.PedidoDTO;
 import br.com.projaplicado.pedido.api.StatusPedido;
 import br.com.projaplicado.pedido.domain.Pedido;
+import br.com.projaplicado.pedido.domain.repository.PedidoRepository;
 import br.com.projaplicado.pedido.service.PedidoService;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -28,11 +28,11 @@ public class PedidoResource {
     PedidoService pedidoService;
 
     @Inject
-    EntityManager entityManager;
+    PedidoRepository pedidoRepository;
 
     @GET
     public List<PedidoDTO> listar() {
-        return entityManager.createQuery("from Pedido", Pedido.class).getResultList().stream()
+        return pedidoRepository.listAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -40,7 +40,7 @@ public class PedidoResource {
     @GET
     @Path("/{id_pedido}")
     public PedidoDTO buscar(@PathParam("id_pedido") Long idPedido) {
-        Pedido pedido = entityManager.find(Pedido.class, idPedido);
+        Pedido pedido = pedidoRepository.findById(idPedido);
         if (pedido == null) {
             throw new NotFoundException("Pedido não encontrado: " + idPedido);
         }
@@ -61,7 +61,7 @@ public class PedidoResource {
     @Path("/{id_pedido}")
     @Transactional
     public PedidoDTO atualizar(@PathParam("id_pedido") Long idPedido, PedidoDTO dto) {
-        Pedido pedido = entityManager.find(Pedido.class, idPedido);
+        Pedido pedido = pedidoRepository.findById(idPedido);
         if (pedido == null) {
             throw new NotFoundException("Pedido não encontrado: " + idPedido);
         }
@@ -86,17 +86,6 @@ public class PedidoResource {
         }
 
         return toDTO(pedido);
-    }
-
-    @DELETE
-    @Path("/{id_pedido}")
-    @Transactional
-    public void deletar(@PathParam("id_pedido") Long idPedido) {
-        Pedido pedido = entityManager.find(Pedido.class, idPedido);
-        if (pedido == null) {
-            throw new NotFoundException("Pedido não encontrado: " + idPedido);
-        }
-        entityManager.remove(pedido);
     }
 
     private PedidoDTO toDTO(Pedido c) {
@@ -132,8 +121,7 @@ public class PedidoResource {
         return Response.noContent().build();
     }
 
-    // Helper para converter o item de volta para DTO na resposta HTTP
-    private ItemPedidoDTO toItemDTO(ItemPedido c) {
+        private ItemPedidoDTO toItemDTO(ItemPedido c) {
         ItemPedidoDTO dto = new ItemPedidoDTO();
         dto.idItem = c.idItem;
         dto.idPedido = c.pedido.idPedido;

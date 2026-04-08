@@ -2,6 +2,8 @@ package br.com.projaplicado.cliente;
 
 import br.com.projaplicado.cliente.api.ClienteDTO;
 import br.com.projaplicado.cliente.domain.Cliente;
+import br.com.projaplicado.cliente.domain.repository.ClienteRepository;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -16,9 +18,12 @@ import java.util.stream.Collectors;
 @Consumes(MediaType.APPLICATION_JSON)
 public class ClienteResource {
 
+    @Inject
+    ClienteRepository clienteRepository;
+
     @GET
     public List<ClienteDTO> listar() {
-        return Cliente.<Cliente>listAll().stream()
+        return clienteRepository.listAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
@@ -26,7 +31,7 @@ public class ClienteResource {
     @GET
     @Path("/{id_cliente}")
     public ClienteDTO buscar(@PathParam("id_cliente") Long idCliente) {
-        Cliente cliente = Cliente.findById(idCliente);
+        Cliente cliente = clienteRepository.findById(idCliente);
         if (cliente == null) {
             throw new NotFoundException("Cliente não encontrado: " + idCliente);
         }
@@ -43,7 +48,7 @@ public class ClienteResource {
         Cliente cliente = new Cliente();
         cliente.nome = dto.nome.trim();
         cliente.contato = normalizeContato(dto.contato);
-        cliente.persistAndFlush();
+        clienteRepository.persistAndFlush(cliente);
 
         return Response.created(URI.create("/clientes/" + cliente.idCliente))
                 .entity(toDTO(cliente))
@@ -54,7 +59,7 @@ public class ClienteResource {
     @Path("/{id_cliente}")
     @Transactional
     public ClienteDTO atualizar(@PathParam("id_cliente") Long idCliente, ClienteDTO dto) {
-        Cliente cliente = Cliente.findById(idCliente);
+        Cliente cliente = clienteRepository.findById(idCliente);
         if (cliente == null) {
             throw new NotFoundException("Cliente não encontrado: " + idCliente);
         }
@@ -74,7 +79,7 @@ public class ClienteResource {
     @Path("/{id_cliente}")
     @Transactional
     public void deletar(@PathParam("id_cliente") Long idCliente) {
-        boolean deletado = Cliente.deleteById(idCliente);
+        boolean deletado = clienteRepository.deleteById(idCliente);
         if (!deletado) {
             throw new NotFoundException("Cliente não encontrado: " + idCliente);
         }
