@@ -104,6 +104,18 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
       (e) => e.idEndereco === enderecoSelecionadoId,
     );
     if (endereco) {
+      // ← CARREGA TODOS OS DADOS NO STATE
+      setEnderecoForm({
+        descricao: endereco.descricao || "",
+        cep: endereco.cep || "",
+        logradouro: endereco.logradouro || "",
+        numero: endereco.numero?.toString() || "",
+        complemento: endereco.complemento || "",
+        bairro: endereco.bairro || "",
+        cidade: endereco.cidade || "",
+        uf: endereco.uf || "", // ou UF.SC se for enum
+        referencia: endereco.referencia || "",
+      });
       setEnderecoEmEdicao(endereco);
       setMostrarFormularioEndereco(true);
     }
@@ -133,8 +145,27 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
       setEnderecoEmEdicao(null);
       // Recarregar lista
       getEnderecosCliente(idCliente).then((data) => setEnderecos(data.data));
-    } catch {
-      toast.error("Erro ao salvar endereço");
+    } catch (error: unknown) {
+      console.error("Erro completo:", error);
+
+      if (error instanceof Error) {
+        console.error("Mensagem:", error.message);
+        toast.error(`Erro: ${error.message}`);
+      } else if (
+        typeof error === "object" &&
+        error !== null &&
+        "response" in error
+      ) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
+        console.error("Response data:", axiosError.response?.data);
+        toast.error(
+          `Erro: ${axiosError.response?.data?.message ?? "Erro desconhecido"}`,
+        );
+      } else {
+        toast.error("Erro desconhecido");
+      }
     }
   };
   const cancelarEdicao = () => {
@@ -233,14 +264,15 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
     try {
       const res = await consultarCep(cep);
       if (res.data.encontrado) {
-        setEnderecoForm({
-          ...enderecoForm,
+        // ← SÓ sobrescreve se campos estiverem vazios (edição)
+        setEnderecoForm((prev) => ({
+          ...prev,
           cep: res.data.cep,
-          logradouro: res.data.logradouro,
-          bairro: res.data.bairro,
-          cidade: res.data.cidade,
-          uf: res.data.uf,
-        });
+          ...(prev.logradouro ? {} : { logradouro: res.data.logradouro }),
+          ...(prev.bairro ? {} : { bairro: res.data.bairro }),
+          ...(prev.cidade ? {} : { cidade: res.data.cidade }),
+          ...(prev.uf ? {} : { uf: res.data.uf }),
+        }));
       }
     } catch {
       toast.error("CEP não encontrado");

@@ -11,8 +11,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class EnderecoService {
@@ -144,12 +147,12 @@ public class EnderecoService {
     }
 
     private void validarAreaEntrega(Endereco endereco) {
-        if (endereco.uf != UF.SC) {
-            throw new BadRequestException("Delivery disponivel apenas para Santa Catarina");
+        if (!"Blumenau".equalsIgnoreCase(endereco.cidade)) {
+            throw new BadRequestException("Delivery disponível apenas para Blumenau");
         }
 
-        if (!"Blumenau".equalsIgnoreCase(endereco.cidade)) {
-            throw new BadRequestException("Delivery disponivel apenas para Blumenau");
+        if (!endereco.uf.equals(UF.SC)) {
+            throw new BadRequestException("Delivery disponível apenas para Santa Catarina");
         }
     }
 
