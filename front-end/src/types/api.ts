@@ -1,6 +1,16 @@
 // Enums
-export type FormaPagamento = "pix" | "voucher" | "cartao_credito" | "cartao_debito" | "dinheiro";
-export type StatusPedido = "pendente" | "preparando" | "pronto" | "entregue" | "cancelado";
+export type FormaPagamento =
+  | "pix"
+  | "voucher"
+  | "cartao_credito"
+  | "cartao_debito"
+  | "dinheiro";
+export type StatusPedido =
+  | "pendente"
+  | "preparando"
+  | "pronto"
+  | "entregue"
+  | "cancelado";
 export type TipoPedido = "delivery" | "retirada" | "local";
 
 // Labels PT-BR
@@ -33,6 +43,50 @@ export interface ClienteDTO {
   contato?: string;
 }
 
+export interface EnderecoResponseDTO {
+  idEndereco: number;
+  descricao: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  uf: string; // "SC", "PR", etc.
+  referencia?: string;
+  principal: boolean;
+  ativo: boolean;
+}
+
+export interface EnderecoRequestDTO {
+  descricao: string;
+  cep: string;
+  logradouro: string;
+  numero: string;
+  complemento?: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  referencia?: string;
+  principal?: boolean;
+}
+
+export interface CepResponseDTO {
+  cep: string;
+  logradouro: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  encontrado: boolean;
+  mensagem?: string;
+}
+
+export enum UF {
+  SC = "SC",
+  PR = "PR",
+  RS = "RS",
+}
+
 export interface ProdutoDTO {
   idProduto?: number;
   nome: string;
@@ -55,6 +109,7 @@ export interface PedidoCriacaoDTO {
   formaPagamento: FormaPagamento;
   observacao?: string;
   tipoPedido: TipoPedido;
+  enderecoEntregaId?: number; // Somente para delivery
   itens: ItemPedidoDTO[];
 }
 

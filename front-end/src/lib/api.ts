@@ -1,6 +1,9 @@
 import axios from "axios";
 import type {
   ClienteDTO,
+  EnderecoResponseDTO,
+  EnderecoRequestDTO,
+  CepResponseDTO,
   ProdutoDTO,
   PedidoDTO,
   PedidoCriacaoDTO,
@@ -56,5 +59,34 @@ export const addItemPedido = (idPedido: number, item: ItemPedidoDTO) =>
   api.post(`/pedidos/${idPedido}/itens`, item).then((r) => r.data);
 export const removeItemPedido = (idPedido: number, idItem: number) =>
   api.delete(`/pedidos/${idPedido}/itens/${idItem}`);
+
+// ── Itens de Endereço
+export const getEnderecosCliente = (idCliente: number) =>
+  api.get<EnderecoResponseDTO[]>(`/clientes/${idCliente}/enderecos`);
+
+export const getEnderecoPrincipal = (idCliente: number) =>
+  api.get<EnderecoResponseDTO>(`/clientes/${idCliente}/enderecos/principal`);
+
+export const criarEndereco = (idCliente: number, data: EnderecoRequestDTO) =>
+  api.post<EnderecoResponseDTO>(`/clientes/${idCliente}/enderecos`, data);
+
+export const atualizarEndereco = (
+  idCliente: number,
+  idEndereco: number,
+  data: EnderecoRequestDTO,
+) =>
+  api.put<EnderecoResponseDTO>(
+    `/clientes/${idCliente}/enderecos/${idEndereco}`,
+    data,
+  );
+
+export const excluirEndereco = (idCliente: number, idEndereco: number) =>
+  api.delete(`/clientes/${idCliente}/enderecos/${idEndereco}`);
+
+export const definirPrincipal = (idCliente: number, idEndereco: number) =>
+  api.patch(`/clientes/${idCliente}/enderecos/${idEndereco}/principal`);
+
+export const consultarCep = (cep: string) =>
+  api.get<CepResponseDTO>(`/enderecos/cep/${cep}`);
 
 export default api;
