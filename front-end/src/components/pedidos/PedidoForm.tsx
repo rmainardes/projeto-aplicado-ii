@@ -10,6 +10,7 @@ import {
   getEnderecosCliente,
   criarEndereco,
   consultarCep,
+  atualizarEndereco,
 } from "@/lib/api";
 import type {
   FormaPagamento,
@@ -93,6 +94,54 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
   const [enderecoForm, setEnderecoForm] = useState<Partial<EnderecoRequestDTO>>(
     {},
   );
+  const [enderecoEmEdicao, setEnderecoEmEdicao] =
+    useState<EnderecoResponseDTO | null>(null);
+
+  const handleEditarEndereco = () => {
+    if (!enderecoSelecionadoId) return;
+
+    const endereco = enderecos.find(
+      (e) => e.idEndereco === enderecoSelecionadoId,
+    );
+    if (endereco) {
+      setEnderecoEmEdicao(endereco);
+      setMostrarFormularioEndereco(true);
+    }
+  };
+
+  const salvarEndereco = async () => {
+    const idCliente = form.getValues("idCliente");
+    if (!idCliente) return;
+
+    try {
+      if (enderecoEmEdicao) {
+        // Modo EDIÇÃO
+        await atualizarEndereco(
+          idCliente,
+          enderecoEmEdicao.idEndereco,
+          enderecoForm as EnderecoRequestDTO,
+        );
+        toast.success("Endereço atualizado!");
+      } else {
+        // Modo CRIAÇÃO
+        await salvarNovoEndereco();
+        return;
+      }
+
+      setMostrarFormularioEndereco(false);
+      setEnderecoForm({});
+      setEnderecoEmEdicao(null);
+      // Recarregar lista
+      getEnderecosCliente(idCliente).then((data) => setEnderecos(data.data));
+    } catch {
+      toast.error("Erro ao salvar endereço");
+    }
+  };
+  const cancelarEdicao = () => {
+    setMostrarFormularioEndereco(false);
+    setEnderecoForm({});
+    setEnderecoEmEdicao(null);
+  };
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -383,7 +432,12 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
                     Novo endereço
                   </Button>
                   {enderecoSelecionadoId && (
-                    <Button type="button" size="sm" variant="outline">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      onClick={handleEditarEndereco} // ← AGORA FUNCIONA
+                    >
                       <Edit3 className="h-3 w-3 mr-1" />
                       Editar
                     </Button>
@@ -503,7 +557,9 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
       >
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Novo Endereço</DialogTitle>
+            <DialogTitle>
+              {enderecoEmEdicao ? "Editar Endereço" : "Novo Endereço"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -642,14 +698,15 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => {
-                setMostrarFormularioEndereco(false);
-                setEnderecoForm({});
-              }}
+              onClick={cancelarEdicao} // ← CANCELA edição ou criação
             >
               Cancelar
             </Button>
-            <Button onClick={salvarNovoEndereco}>Salvar endereço</Button>
+            <Button onClick={salvarEndereco}>
+              {" "}
+              {/* ← FUNCIONA para criar E editar */}
+              {enderecoEmEdicao ? "Atualizar" : "Salvar"} endereço
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
