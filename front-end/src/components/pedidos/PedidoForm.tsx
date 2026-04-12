@@ -50,13 +50,31 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, MapPin, Edit3 } from "lucide-react";
 
-const schema = z.object({
-  idCliente: z.coerce.number().min(1, "Selecione um cliente"),
-  formaPagamento: z.string().min(1, "Selecione forma de pagamento"),
-  tipoPedido: z.string().min(1, "Selecione o tipo"),
-  observacao: z.string().optional(),
-  enderecoEntregaId: z.number().optional(),
-});
+const schema = z
+  .object({
+    idCliente: z.coerce.number().optional(),
+    formaPagamento: z.string().min(1, "Selecione forma de pagamento"),
+    tipoPedido: z.string().min(1, "Selecione o tipo"),
+    observacao: z.string().optional(),
+    enderecoEntregaId: z.number().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.tipoPedido !== "local" && !data.idCliente) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["idCliente"],
+        message: "Selecione um cliente",
+      });
+    }
+
+    if (data.tipoPedido === "delivery" && !data.enderecoEntregaId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["enderecoEntregaId"],
+        message: "Selecione um endereço de entrega",
+      });
+    }
+  });
 
 type FormValues = z.infer<typeof schema>;
 
@@ -185,10 +203,22 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
     },
   });
 
+  const tipoPedido = form.watch("tipoPedido");
+  const isLocal = tipoPedido === "local";
+  const isDelivery = tipoPedido === "delivery";
+
+  useEffect(() => {
+    if (isLocal) {
+      form.setValue("idCliente", undefined);
+      form.setValue("enderecoEntregaId", undefined);
+      setEnderecos([]);
+      setEnderecoSelecionadoId(null);
+    }
+  }, [isLocal, form]);
+
   // Carregar endereços quando cliente e tipoPedido mudam
   useEffect(() => {
     const idCliente = form.watch("idCliente");
-    const tipoPedido = form.watch("tipoPedido");
 
     if (idCliente && tipoPedido === "delivery") {
       getEnderecosCliente(idCliente).then((res) => {
@@ -230,11 +260,14 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
         throw new Error("Adicione pelo menos 1 item");
       }
       return createPedido({
-        idCliente: values.idCliente,
+        idCliente: values.tipoPedido === "local" ? undefined : values.idCliente,
         formaPagamento: values.formaPagamento as FormaPagamento,
         tipoPedido: values.tipoPedido as TipoPedido,
         observacao: values.observacao ?? undefined,
-        enderecoEntregaId: values.enderecoEntregaId ?? undefined,
+        enderecoEntregaId:
+          values.tipoPedido === "delivery"
+            ? values.enderecoEntregaId
+            : undefined,
         itens: validItens as ItemPedidoDTO[],
       });
     },
@@ -315,36 +348,38 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
             className="space-y-4"
           >
             {/* Cliente */}
-            <FormField
-              control={form.control}
-              name="idCliente"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cliente</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value?.toString()}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecionar cliente" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {clientesData.data?.map((c) => (
-                        <SelectItem
-                          key={c.idCliente}
-                          value={c.idCliente.toString()}
-                        >
-                          {c.nome}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isLocal && (
+              <FormField
+                control={form.control}
+                name="idCliente"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cliente</FormLabel>
+                    <Select
+                      onValueChange={(value) => field.onChange(Number(value))}
+                      value={field.value ? field.value.toString() : undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecionar cliente" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {clientesData.data?.map((c) => (
+                          <SelectItem
+                            key={c.idCliente}
+                            value={c.idCliente.toString()}
+                          >
+                            {c.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Grid: Pagamento + Tipo */}
             <div className="grid grid-cols-2 gap-4">
@@ -397,10 +432,18 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
                   </FormItem>
                 )}
               />
+              {/*         {isLocal && (
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">
+                    Pedidos para consumo no local usam o cliente padrão "CONSUMO
+                    NO LOCAL".
+                  </p>
+                </div>
+              )} */}
             </div>
 
             {/* Bloco de Endereço - só para DELIVERY */}
-            {form.watch("tipoPedido") === "delivery" && (
+            {isDelivery && (
               <div className="space-y-2 p-4 border rounded-md">
                 <FormField
                   control={form.control}

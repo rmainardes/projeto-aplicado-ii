@@ -38,6 +38,16 @@ public class ClienteResource {
         return toDTO(cliente);
     }
 
+    @GET
+    @Path("/local-padrao")
+    public Response getClienteLocalPadrao() {
+        Cliente cliente = clienteRepository.getClienteLocalPadrao();
+        if (cliente == null) {
+            return Response.status(404).entity("Cliente padrão não encontrado").build();
+        }
+        return Response.ok(cliente).build();
+    }
+
     @POST
     @Transactional
     public Response criar(ClienteDTO dto) {

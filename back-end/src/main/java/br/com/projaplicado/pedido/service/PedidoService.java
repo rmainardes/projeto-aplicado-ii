@@ -1,9 +1,12 @@
 package br.com.projaplicado.pedido.service;
 
+import br.com.projaplicado.cliente.domain.Cliente;
+import br.com.projaplicado.cliente.domain.repository.ClienteRepository;
 import br.com.projaplicado.itempedido.api.ItemPedidoDTO;
 import br.com.projaplicado.itempedido.domain.ItemPedido;
 import br.com.projaplicado.pedido.api.PedidoCriacaoDTO;
 import br.com.projaplicado.pedido.api.StatusPedido;
+import br.com.projaplicado.pedido.api.TipoPedido;
 import br.com.projaplicado.pedido.domain.Pedido;
 import br.com.projaplicado.produto.domain.Produto;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,7 +19,7 @@ import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Collection;import java.util.HashMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +30,8 @@ public class PedidoService {
     @Inject
     EntityManager entityManager;
 
+    @Inject
+    ClienteRepository clienteRepository;
 
     @Transactional
     public Pedido criarPedido(PedidoCriacaoDTO dto) {
@@ -51,8 +56,23 @@ public class PedidoService {
             }
         }
 
+        Long idClientePedido;
+
+        if (dto.tipoPedido == TipoPedido.local) {
+            Cliente clienteLocal = clienteRepository.getClienteLocalPadrao();
+            if (clienteLocal == null) {
+                throw new NotFoundException("Cliente padrão de consumo no local não encontrado");
+            }
+            idClientePedido = clienteLocal.idCliente;
+        } else {
+            if (dto.idCliente == null) {
+                throw new BadRequestException("Cliente é obrigatório para este tipo de pedido");
+            }
+            idClientePedido = dto.idCliente;
+        }
+
         Pedido pedido = new Pedido();
-        pedido.idCliente = dto.idCliente;
+        pedido.idCliente = idClientePedido;
         pedido.data = LocalDateTime.now();
         pedido.formaPagamento = dto.formaPagamento;
         pedido.tipoPedido = dto.tipoPedido;
