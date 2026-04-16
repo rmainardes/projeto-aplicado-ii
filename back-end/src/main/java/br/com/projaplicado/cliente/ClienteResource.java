@@ -21,11 +21,19 @@ public class ClienteResource {
     @Inject
     ClienteRepository clienteRepository;
 
+
     @GET
     public List<ClienteDTO> listar() {
         return clienteRepository.listAll().stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
+    }
+
+    @GET
+    @Path("/health")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String health() {
+        return "OK";
     }
 
     @GET
