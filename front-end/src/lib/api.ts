@@ -15,12 +15,11 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Preparado para JWT futuro
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
+api.interceptors.request.use((config) => {
+  const token = axios.defaults.headers.common["Authorization"];
+  if (token) config.headers["Authorization"] = token as string;
+  return config;
+});
 
 // ── Clientes ──
 export const getClientes = () =>
