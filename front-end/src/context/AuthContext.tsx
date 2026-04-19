@@ -18,29 +18,43 @@ interface AuthCtx {
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(
+      () => localStorage.getItem("token")
+  );
+  const [usuario, setUsuario] = useState<Usuario | null>(
+      () => {
+        const u = localStorage.getItem("usuario");
+        return u ? JSON.parse(u) : null;
+      }
+  );
+
+  if (token) {
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  }
 
   const login = async (email: string, senha: string) => {
     const { data } = await axios.post("/api/auth/login", { email, senha });
     setToken(data.token);
     setUsuario(data.usuario);
-    // Injeta o token em todas as requests futuras
+    localStorage.setItem("token", data.token);           // ← persiste
+    localStorage.setItem("usuario", JSON.stringify(data.usuario));
     axios.defaults.headers.common["Authorization"] = `Bearer ${data.token}`;
   };
 
   const logout = () => {
     setToken(null);
     setUsuario(null);
+    localStorage.removeItem("token");                    // ← limpa
+    localStorage.removeItem("usuario");
     delete axios.defaults.headers.common["Authorization"];
   };
 
   const isAdmin = () => usuario?.role === "ADMIN";
 
   return (
-    <AuthContext.Provider value={{ usuario, token, login, logout, isAdmin }}>
-      {children}
-    </AuthContext.Provider>
+      <AuthContext.Provider value={{ usuario, token, login, logout, isAdmin }}>
+        {children}
+      </AuthContext.Provider>
   );
 }
 
