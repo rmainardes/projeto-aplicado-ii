@@ -18,9 +18,12 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Power } from "lucide-react";
 import ProdutoForm from "@/components/produtos/ProdutoForm";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Produtos() {
   const qc = useQueryClient();
+  const { isAdmin } = useAuth();
+  const canManageProducts = isAdmin();
   const { data: produtos = [], isLoading } = useQuery({ queryKey: ["produtos"], queryFn: getProdutos });
 
   const [search, setSearch] = useState("");
@@ -55,9 +58,11 @@ export default function Produtos() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-display font-bold">Produtos</h2>
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
-          <Plus className="h-4 w-4 mr-1" /> Novo Produto
-        </Button>
+        {canManageProducts && (
+          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+            <Plus className="h-4 w-4 mr-1" /> Novo Produto
+          </Button>
+        )}
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
@@ -88,19 +93,19 @@ export default function Produtos() {
               <TableHead>Preço</TableHead>
               <TableHead>Estoque</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="w-24">Ações</TableHead>
+              {canManageProducts && <TableHead className="w-24">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={canManageProducts ? 7 : 6} className="text-center text-muted-foreground">
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-muted-foreground">
+                <TableCell colSpan={canManageProducts ? 7 : 6} className="text-center text-muted-foreground">
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
@@ -119,26 +124,28 @@ export default function Produtos() {
                       {p.ativo !== false ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => { setEditing(p); setFormOpen(true); }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => toggleMut.mutate(p)}
-                        disabled={toggleMut.isPending}
-                        title={p.ativo !== false ? "Desativar" : "Reativar"}
-                      >
-                        <Power className={`h-4 w-4 ${p.ativo !== false ? "text-destructive" : "text-success"}`} />
-                      </Button>
-                    </div>
-                  </TableCell>
+                  {canManageProducts && (
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => { setEditing(p); setFormOpen(true); }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => toggleMut.mutate(p)}
+                          disabled={toggleMut.isPending}
+                          title={p.ativo !== false ? "Desativar" : "Reativar"}
+                        >
+                          <Power className={`h-4 w-4 ${p.ativo !== false ? "text-destructive" : "text-success"}`} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  )}
                 </TableRow>
               ))
             )}
@@ -146,12 +153,14 @@ export default function Produtos() {
         </Table>
       </div>
 
-      <ProdutoForm
-        key={editing?.idProduto ?? "new"}
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        produto={editing}
-      />
+      {canManageProducts && (
+        <ProdutoForm
+          key={editing?.idProduto ?? "new"}
+          open={formOpen}
+          onOpenChange={setFormOpen}
+          produto={editing}
+        />
+      )}
     </div>
   );
 }

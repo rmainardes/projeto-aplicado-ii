@@ -42,8 +42,10 @@ interface Props {
 
 export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
     const qc = useQueryClient();
-    const { isAdmin } = useAuth(); // ✅ dentro do componente
+    const { isAdmin } = useAuth();
+    const canManageProducts = isAdmin();
     const isEdit = !!produto?.idProduto;
+
 
     const form = useForm<FormValues>({
         resolver: zodResolver(schema),
@@ -57,6 +59,10 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
 
     const mutation = useMutation({
         mutationFn: (values: FormValues) => {
+            if (!canManageProducts) {
+                throw new Error("Operação não autorizada");
+            }
+
             const dto: ProdutoDTO = {
                 nome: values.nome,
                 descricao: values.descricao,
@@ -82,7 +88,16 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                     <DialogTitle>{isEdit ? "Editar Produto" : "Novo Produto"}</DialogTitle>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit((v) => mutation.mutate(v))} className="space-y-4">
+                    <form
+                        onSubmit={form.handleSubmit((v) => {
+                            if (!canManageProducts) {
+                                toast.error("Apenas administradores podem gerenciar produtos.");
+                                return;
+                            }
+                            mutation.mutate(v);
+                        })}
+                        className="space-y-4"
+                    >
                         <FormField
                             control={form.control}
                             name="nome"
@@ -90,7 +105,7 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                                 <FormItem>
                                     <FormLabel>Nome</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Ex: X-Burguer" {...field} />
+                                        <Input placeholder="Ex: X-Burguer" disabled={!canManageProducts} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -103,7 +118,7 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                                 <FormItem>
                                     <FormLabel>Descrição</FormLabel>
                                     <FormControl>
-                                        <Textarea placeholder="Descrição do produto" {...field} />
+                                        <Textarea placeholder="Descrição do produto" disabled={!canManageProducts} {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>
@@ -121,7 +136,7 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                                         <FormControl>
                                             <Input
                                                 type="number" step="0.01" min="0"
-                                                disabled={!isAdmin()}
+                                                disabled={!canManageProducts}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -138,7 +153,7 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                                         <FormControl>
                                             <Input
                                                 type="number" min="0"
-                                                disabled={!isAdmin()}
+                                                disabled={!canManageProducts}
                                                 {...field}
                                             />
                                         </FormControl>
@@ -152,7 +167,7 @@ export default function ProdutoForm({ open, onOpenChange, produto }: Props) {
                             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                                 Cancelar
                             </Button>
-                            <Button type="submit" disabled={mutation.isPending || !isAdmin()}>
+                            <Button type="submit" disabled={mutation.isPending || !canManageProducts}>
                                 {mutation.isPending ? "Salvando..." : "Salvar"}
                             </Button>
                         </DialogFooter>
