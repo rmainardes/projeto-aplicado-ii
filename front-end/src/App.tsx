@@ -15,19 +15,19 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
   return token ? children : <Navigate to="/login" replace />;
 }
 
+function ProtectedLayout() {
+  const { token } = useAuth();
+  if (!token) return <Navigate to="/login" replace />;
+  return <Layout />; // Layout usa <Outlet /> internamente
+}
+
 const App = () => (
   <>
     <Toaster />
     <Sonner />
     <Routes>
       <Route path="/login" element={<LoginPage />} />
-      <Route
-        element={
-          <ProtectedRoute>
-            <Layout />
-          </ProtectedRoute>
-        }
-      >
+      <Route element={<ProtectedLayout />}>
         <Route path="/" element={<Index />} />
         <Route path="/clientes" element={<Clientes />} />
         <Route path="/produtos" element={<Produtos />} />
