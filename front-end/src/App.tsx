@@ -1,35 +1,41 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import Layout from "@/components/Layout";
 import Index from "@/pages/Index";
 import Clientes from "./pages/Clientes";
 import Produtos from "./pages/Produtos";
 import Pedidos from "./pages/Pedidos";
 import NotFound from "./pages/NotFound";
+import LoginPage from "./LoginPage";
+import { useAuth } from "@/context/AuthContext";
 
-const queryClient = new QueryClient();
+function ProtectedRoute({ children }: { children: JSX.Element }) {
+  const { token } = useAuth();
+  return token ? children : <Navigate to="/login" replace />;
+}
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/clientes" element={<Clientes />} />
-            <Route path="/produtos" element={<Produtos />} />
-            <Route path="/pedidos" element={<Pedidos />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <>
+    <Toaster />
+    <Sonner />
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Index />} />
+        <Route path="/clientes" element={<Clientes />} />
+        <Route path="/produtos" element={<Produtos />} />
+        <Route path="/pedidos" element={<Pedidos />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  </>
 );
 
 export default App;
