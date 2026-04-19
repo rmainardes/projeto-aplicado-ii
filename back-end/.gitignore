@@ -49,3 +49,5 @@ quarkus-app/
 
 # Database secrets locais
 application-local.properties
+/src/main/resources/privateKey.pem
+/src/main/resources/publicKey.pem

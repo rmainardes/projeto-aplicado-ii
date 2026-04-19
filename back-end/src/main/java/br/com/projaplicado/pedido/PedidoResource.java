@@ -98,6 +98,15 @@ public class PedidoResource {
         dto.status = c.status;
         dto.observacao = c.observacao;
         dto.tipoPedido = c.tipoPedido;
+        dto.itens = c.itens.stream().map(i -> {
+            ItemPedidoDTO item = new ItemPedidoDTO();
+            item.idItem        = i.idItem;
+            item.idPedido      = c.idPedido;
+            item.idProduto     = i.idProduto;
+            item.quantidade    = i.quantidade;
+            item.precoUnitario = i.precoUnitario;
+            return item;
+        }).toList();
         return dto;
     }
 
