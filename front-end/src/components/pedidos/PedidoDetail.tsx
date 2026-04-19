@@ -1,7 +1,18 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPedido, updatePedido, addItemPedido, removeItemPedido, getProdutos, getClientes } from "@/lib/api";
+import {
+  getPedido,
+  updatePedido,
+  addItemPedido,
+  removeItemPedido,
+  getProdutos,
+  getClientes,
+} from "@/lib/api";
 import type { PedidoDTO, StatusPedido, ItemPedidoDTO } from "@/types/api";
-import { statusPedidoLabels, formaPagamentoLabels, tipoPedidoLabels } from "@/types/api";
+import {
+  statusPedidoLabels,
+  formaPagamentoLabels,
+  tipoPedidoLabels,
+} from "@/types/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -43,8 +54,14 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
     queryFn: () => getPedido(pedidoId!),
     enabled: !!pedidoId && open,
   });
-  const { data: produtos = [] } = useQuery({ queryKey: ["produtos"], queryFn: getProdutos });
-  const { data: clientes = [] } = useQuery({ queryKey: ["clientes"], queryFn: getClientes });
+  const { data: produtos = [] } = useQuery({
+    queryKey: ["produtos"],
+    queryFn: getProdutos,
+  });
+  const { data: clientes = [] } = useQuery({
+    queryKey: ["clientes"],
+    queryFn: getClientes,
+  });
 
   const [newItem, setNewItem] = useState({ idProduto: 0, quantidade: 1 });
 
@@ -103,11 +120,15 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Cliente:</span>{" "}
-                <span className="font-medium">{cliente?.nome ?? `#${pedido.idCliente}`}</span>
+                <span className="font-medium">
+                  {cliente?.nome ?? `#${pedido.idCliente}`}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Valor:</span>{" "}
-                <span className="font-semibold">R$ {pedido.valor?.toFixed(2)}</span>
+                <span className="font-semibold">
+                  R$ {pedido.valor?.toFixed(2)}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Tipo:</span>{" "}
@@ -123,7 +144,8 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
               </div>
               {pedido.observacao && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Obs:</span> {pedido.observacao}
+                  <span className="text-muted-foreground">Obs:</span>{" "}
+                  {pedido.observacao}
                 </div>
               )}
             </div>
@@ -142,7 +164,9 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(statusPedidoLabels).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -151,16 +175,27 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
             {/* Itens */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Itens</h4>
-              {pedido.itens && pedido.itens.length > 0 ? (
-                pedido.itens.map((item) => {
-                  const prod = produtos.find((p) => p.idProduto === item.idProduto);
+              {(pedido.itens?.length ?? 0) > 0 ? (
+                pedido.itens!.map((item) => {
+                  const prod = produtos.find(
+                    (p) => p.idProduto === item.idProduto,
+                  );
                   return (
-                    <div key={item.idItem} className="flex items-center justify-between rounded-md border p-2">
+                    <div
+                      key={item.idItem}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
                       <div className="text-sm">
-                        <span className="font-medium">{prod?.nome ?? `Produto #${item.idProduto}`}</span>
-                        {" × "}{item.quantidade}
+                        <span className="font-medium">
+                          {prod?.nome ?? `Produto #${item.idProduto}`}
+                        </span>
+                        {" × "}
+                        {item.quantidade}
                         <span className="text-muted-foreground ml-2">
-                          R$ {((item.precoUnitario ?? 0) * item.quantidade).toFixed(2)}
+                          R${" "}
+                          {(
+                            (item.precoUnitario ?? 0) * item.quantidade
+                          ).toFixed(2)}
                         </span>
                       </div>
                       <Button
@@ -183,14 +218,19 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
                 <div className="flex-1">
                   <Select
                     value={String(newItem.idProduto || "")}
-                    onValueChange={(v) => setNewItem({ ...newItem, idProduto: Number(v) })}
+                    onValueChange={(v) =>
+                      setNewItem({ ...newItem, idProduto: Number(v) })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Produto" />
                     </SelectTrigger>
                     <SelectContent>
                       {produtosAtivos.map((p) => (
-                        <SelectItem key={p.idProduto} value={String(p.idProduto)}>
+                        <SelectItem
+                          key={p.idProduto}
+                          value={String(p.idProduto)}
+                        >
                           {p.nome}
                         </SelectItem>
                       ))}
@@ -202,7 +242,12 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
                   min={1}
                   className="w-20"
                   value={newItem.quantidade}
-                  onChange={(e) => setNewItem({ ...newItem, quantidade: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setNewItem({
+                      ...newItem,
+                      quantidade: Number(e.target.value),
+                    })
+                  }
                 />
                 <Button
                   size="sm"

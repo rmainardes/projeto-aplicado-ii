@@ -49,7 +49,7 @@ public class Pedido extends PanacheEntityBase {
     @Column(name = "observacao")
     public String observacao;
 
-    @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "pedido", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     public List<ItemPedido> itens = new ArrayList<>();
 
 }
