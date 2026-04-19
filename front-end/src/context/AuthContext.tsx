@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
 
   const login = async (email: string, senha: string) => {
-    const { data } = await axios.post("api/auth/login", { email, senha });
+    const { data } = await axios.post("/api/auth/login", { email, senha });
     setToken(data.token);
     setUsuario(data.usuario);
     // Injeta o token em todas as requests futuras
