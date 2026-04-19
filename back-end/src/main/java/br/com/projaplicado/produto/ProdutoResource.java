@@ -3,6 +3,7 @@ package br.com.projaplicado.produto;
 import br.com.projaplicado.produto.api.ProdutoDTO;
 import br.com.projaplicado.produto.domain.Produto;
 import br.com.projaplicado.produto.domain.repository.ProdutoRepository;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -32,6 +33,7 @@ public class ProdutoResource {
 
     @GET
     @Path("/{id_produto}")
+    @RolesAllowed({"ADMIN", "FUNCIONARIO"})
     public ProdutoDTO buscar(@PathParam("id_produto") Long idProduto) {
         Produto produto = produtoRepository.findById(idProduto);
         if (produto == null) {
@@ -41,6 +43,7 @@ public class ProdutoResource {
     }
 
     @POST
+    @RolesAllowed("ADMIN")
     @Transactional
     public Response criar(@Valid ProdutoDTO dto) {
         Produto produto = new Produto();
@@ -57,6 +60,7 @@ public class ProdutoResource {
 
     @PUT
     @Path("/{id_produto}")
+    @RolesAllowed("ADMIN")
     @Transactional
     public ProdutoDTO atualizar(@PathParam("id_produto") Long idProduto, ProdutoDTO dto) {
         Produto produto = produtoRepository.findById(idProduto);
@@ -85,6 +89,7 @@ public class ProdutoResource {
 
     @DELETE
     @Path("/{id_produto}")
+    @RolesAllowed("ADMIN")
     @Transactional
     public void deletar(@PathParam("id_produto") Long idProduto) {
         Produto produto = produtoRepository.findById(idProduto);
