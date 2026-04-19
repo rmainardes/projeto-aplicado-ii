@@ -17,8 +17,9 @@ function ProtectedRoute({ children }: { children: JSX.Element }) {
 
 function ProtectedLayout() {
   const { token } = useAuth();
+  console.log("token atual:", token); // ← veja no console da Vercel/browser
   if (!token) return <Navigate to="/login" replace />;
-  return <Layout />; // Layout usa <Outlet /> internamente
+  return <Layout />;
 }
 
 const App = () => (
