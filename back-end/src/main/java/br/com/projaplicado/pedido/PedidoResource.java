@@ -121,6 +121,16 @@ public class PedidoResource {
                 .build();
     }
 
+    @PUT
+    @Path("/{id_pedido}/itens/{id_item}")
+    @Transactional
+    public ItemPedidoDTO atualizarItem(@PathParam("id_pedido") Long idPedido,
+                                       @PathParam("id_item") Long idItem,
+                                       @Valid ItemPedidoDTO dto) {
+        ItemPedido itemAtualizado = pedidoService.atualizarItem(idPedido, idItem, dto);
+        return toItemDTO(itemAtualizado);
+    }
+
     @DELETE
     @Path("/{id_pedido}/itens/{id_item}")
     @Transactional

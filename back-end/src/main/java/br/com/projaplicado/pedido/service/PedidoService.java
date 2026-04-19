@@ -154,6 +154,48 @@ public class PedidoService {
     }
 
     @Transactional
+    public ItemPedido atualizarItem(Long idPedido, Long idItem, ItemPedidoDTO dto) {
+        Pedido pedido = entityManager.find(Pedido.class, idPedido);
+        if (pedido == null) {
+            throw new NotFoundException("Pedido não encontrado: " + idPedido);
+        }
+        if (pedido.status != StatusPedido.pendente) {
+            throw new BadRequestException("Só é possível alterar itens de pedidos com status PENDENTE.");
+        }
+
+        ItemPedido item = entityManager.find(ItemPedido.class, idItem);
+        if (item == null || !item.pedido.idPedido.equals(idPedido)) {
+            throw new NotFoundException("Item não pertence a este pedido ou não existe.");
+        }
+        if (dto.idProduto != null && !dto.idProduto.equals(item.idProduto)) {
+            throw new BadRequestException("Não é permitido alterar o produto do item.");
+        }
+
+        Produto produto = entityManager.find(Produto.class, item.idProduto, LockModeType.PESSIMISTIC_WRITE);
+        if (produto == null) {
+            throw new NotFoundException("Produto não encontrado: " + item.idProduto);
+        }
+
+        int diferencaQuantidade = dto.quantidade - item.quantidade;
+        if (diferencaQuantidade > 0 && produto.quantidadeEstoque < diferencaQuantidade) {
+            throw new BadRequestException("Estoque insuficiente para o produto: " + produto.nome);
+        }
+
+        if (diferencaQuantidade != 0) {
+            produto.quantidadeEstoque = produto.quantidadeEstoque - diferencaQuantidade;
+            item.quantidade = dto.quantidade;
+
+            BigDecimal subtotal = item.precoUnitario.multiply(BigDecimal.valueOf(diferencaQuantidade));
+            pedido.valor = pedido.valor.add(subtotal);
+            if (pedido.valor.compareTo(BigDecimal.ZERO) < 0) {
+                pedido.valor = BigDecimal.ZERO;
+            }
+        }
+
+        return item;
+    }
+
+    @Transactional
     public void removerItem(Long idPedido, Long idItem) {
         Pedido pedido = entityManager.find(Pedido.class, idPedido);
         if (pedido == null) throw new NotFoundException("Pedido não encontrado: " + idPedido);
@@ -176,7 +218,7 @@ public class PedidoService {
         if (pedido.valor.compareTo(BigDecimal.ZERO) < 0) {
             pedido.valor = BigDecimal.ZERO;
         }
-
+        pedido.itens.remove(item);
         entityManager.remove(item);
     }
 }
