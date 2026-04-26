@@ -98,6 +98,15 @@ public class PedidoResource {
         dto.status = c.status;
         dto.observacao = c.observacao;
         dto.tipoPedido = c.tipoPedido;
+        dto.itens = c.itens.stream().map(i -> {
+            ItemPedidoDTO item = new ItemPedidoDTO();
+            item.idItem        = i.idItem;
+            item.idPedido      = c.idPedido;
+            item.idProduto     = i.idProduto;
+            item.quantidade    = i.quantidade;
+            item.precoUnitario = i.precoUnitario;
+            return item;
+        }).toList();
         return dto;
     }
 
@@ -110,6 +119,16 @@ public class PedidoResource {
         return Response.status(Response.Status.CREATED)
                 .entity(toItemDTO(itemSalvo))
                 .build();
+    }
+
+    @PUT
+    @Path("/{id_pedido}/itens/{id_item}")
+    @Transactional
+    public ItemPedidoDTO atualizarItem(@PathParam("id_pedido") Long idPedido,
+                                       @PathParam("id_item") Long idItem,
+                                       @Valid ItemPedidoDTO dto) {
+        ItemPedido itemAtualizado = pedidoService.atualizarItem(idPedido, idItem, dto);
+        return toItemDTO(itemAtualizado);
     }
 
     @DELETE

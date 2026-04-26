@@ -1,8 +1,11 @@
 package br.com.projaplicado.pedido.api;
 
 
+import br.com.projaplicado.itempedido.api.ItemPedidoDTO;
 import jakarta.validation.constraints.NotNull;import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PedidoDTO {
     public Long idPedido;
@@ -24,4 +27,6 @@ public class PedidoDTO {
 
     @NotNull(message = "tipo_pedido e obrigatorio")
     public TipoPedido tipoPedido;
+
+    public List<ItemPedidoDTO> itens = new ArrayList<>();
 }

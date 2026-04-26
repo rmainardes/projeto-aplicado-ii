@@ -15,12 +15,11 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-// Preparado para JWT futuro
-// api.interceptors.request.use((config) => {
-//   const token = localStorage.getItem("token");
-//   if (token) config.headers.Authorization = `Bearer ${token}`;
-//   return config;
-// });
+api.interceptors.request.use((config) => {
+  const token = axios.defaults.headers.common["Authorization"];
+  if (token) config.headers["Authorization"] = token as string;
+  return config;
+});
 
 // ── Clientes ──
 export const getClientes = () =>
@@ -57,8 +56,13 @@ export const updatePedido = (id: number, data: PedidoDTO) =>
 // ── Itens do Pedido ──
 export const addItemPedido = (idPedido: number, item: ItemPedidoDTO) =>
   api.post(`/pedidos/${idPedido}/itens`, item).then((r) => r.data);
+export const updateItemPedido = (
+  idPedido: number,
+  idItem: number,
+  item: ItemPedidoDTO,
+) => api.put(`/pedidos/${idPedido}/itens/${idItem}`, item).then((r) => r.data);
 export const removeItemPedido = (idPedido: number, idItem: number) =>
-  api.delete(`/pedidos/${idPedido}/itens/${idItem}`);
+  api.delete(`/pedidos/${idPedido}/itens/${idItem}`).then((r) => r.data);
 
 // ── Itens de Endereço
 export const getEnderecosCliente = (idCliente: number) =>

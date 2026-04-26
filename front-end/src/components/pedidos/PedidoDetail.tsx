@@ -1,7 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPedido, updatePedido, addItemPedido, removeItemPedido, getProdutos, getClientes } from "@/lib/api";
+import {
+  getPedido,
+  updatePedido,
+  addItemPedido,
+  updateItemPedido,
+  removeItemPedido,
+  getProdutos,
+  getClientes,
+} from "@/lib/api";
 import type { PedidoDTO, StatusPedido, ItemPedidoDTO } from "@/types/api";
-import { statusPedidoLabels, formaPagamentoLabels, tipoPedidoLabels } from "@/types/api";
+import {
+  statusPedidoLabels,
+  formaPagamentoLabels,
+  tipoPedidoLabels,
+} from "@/types/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -20,7 +32,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronUp, ChevronDown } from "lucide-react";
 
 const statusColors: Record<StatusPedido, string> = {
   pendente: "bg-warning text-warning-foreground",
@@ -43,8 +55,14 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
     queryFn: () => getPedido(pedidoId!),
     enabled: !!pedidoId && open,
   });
-  const { data: produtos = [] } = useQuery({ queryKey: ["produtos"], queryFn: getProdutos });
-  const { data: clientes = [] } = useQuery({ queryKey: ["clientes"], queryFn: getClientes });
+  const { data: produtos = [] } = useQuery({
+    queryKey: ["produtos"],
+    queryFn: getProdutos,
+  });
+  const { data: clientes = [] } = useQuery({
+    queryKey: ["clientes"],
+    queryFn: getClientes,
+  });
 
   const [newItem, setNewItem] = useState({ idProduto: 0, quantidade: 1 });
 
@@ -64,7 +82,24 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
   });
 
   const addMut = useMutation({
-    mutationFn: () => addItemPedido(pedidoId!, newItem as ItemPedidoDTO),
+    mutationFn: () => {
+      // Check if product already exists in the order
+      const existingItem = pedido?.itens?.find(
+        (i) => i.idProduto === newItem.idProduto,
+      );
+
+      if (existingItem) {
+        // Update quantity of existing item
+        return updateItemPedido(pedidoId!, existingItem.idItem!, {
+          idProduto: existingItem.idProduto,
+          quantidade: existingItem.quantidade + newItem.quantidade,
+          precoUnitario: existingItem.precoUnitario,
+        });
+      } else {
+        // Add new item
+        return addItemPedido(pedidoId!, newItem as ItemPedidoDTO);
+      }
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["pedido", pedidoId] });
       qc.invalidateQueries({ queryKey: ["pedidos"] });
@@ -76,12 +111,43 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
 
   const removeMut = useMutation({
     mutationFn: (idItem: number) => removeItemPedido(pedidoId!, idItem),
-    onSuccess: () => {
+    onSuccess: (_, idItem) => {
+      qc.setQueryData(["pedido", pedidoId], (old: PedidoDTO | undefined) => {
+        if (!old) return old;
+        return {
+          ...old,
+          itens: old.itens?.filter((i) => i.idItem !== idItem),
+        };
+      });
       qc.invalidateQueries({ queryKey: ["pedido", pedidoId] });
       qc.invalidateQueries({ queryKey: ["pedidos"] });
       toast.success("Item removido!");
     },
     onError: () => toast.error("Erro ao remover item"),
+  });
+
+  const updateQuantityMut = useMutation({
+    mutationFn: ({
+      idItem,
+      quantidade,
+    }: {
+      idItem: number;
+      quantidade: number;
+    }) => {
+      const item = pedido?.itens?.find((i) => i.idItem === idItem);
+      if (!item) throw new Error("Item não encontrado");
+      return updateItemPedido(pedidoId!, idItem, {
+        idProduto: item.idProduto,
+        quantidade,
+        precoUnitario: item.precoUnitario,
+      });
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["pedido", pedidoId] });
+      qc.invalidateQueries({ queryKey: ["pedidos"] });
+      toast.success("Quantidade atualizada!");
+    },
+    onError: () => toast.error("Erro ao atualizar quantidade"),
   });
 
   const produtosAtivos = produtos.filter((p) => p.ativo !== false);
@@ -103,11 +169,15 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Cliente:</span>{" "}
-                <span className="font-medium">{cliente?.nome ?? `#${pedido.idCliente}`}</span>
+                <span className="font-medium">
+                  {cliente?.nome ?? `#${pedido.idCliente}`}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Valor:</span>{" "}
-                <span className="font-semibold">R$ {pedido.valor?.toFixed(2)}</span>
+                <span className="font-semibold">
+                  R$ {pedido.valor?.toFixed(2)}
+                </span>
               </div>
               <div>
                 <span className="text-muted-foreground">Tipo:</span>{" "}
@@ -123,7 +193,8 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
               </div>
               {pedido.observacao && (
                 <div className="col-span-2">
-                  <span className="text-muted-foreground">Obs:</span> {pedido.observacao}
+                  <span className="text-muted-foreground">Obs:</span>{" "}
+                  {pedido.observacao}
                 </div>
               )}
             </div>
@@ -142,7 +213,9 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
                 </SelectTrigger>
                 <SelectContent>
                   {Object.entries(statusPedidoLabels).map(([k, v]) => (
-                    <SelectItem key={k} value={k}>{v}</SelectItem>
+                    <SelectItem key={k} value={k}>
+                      {v}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -151,23 +224,76 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
             {/* Itens */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Itens</h4>
-              {pedido.itens && pedido.itens.length > 0 ? (
-                pedido.itens.map((item) => {
-                  const prod = produtos.find((p) => p.idProduto === item.idProduto);
+              {(pedido.itens?.length ?? 0) > 0 ? (
+                pedido.itens!.map((item) => {
+                  const prod = produtos.find(
+                    (p) => p.idProduto === item.idProduto,
+                  );
                   return (
-                    <div key={item.idItem} className="flex items-center justify-between rounded-md border p-2">
+                    <div
+                      key={item.idItem}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
                       <div className="text-sm">
-                        <span className="font-medium">{prod?.nome ?? `Produto #${item.idProduto}`}</span>
-                        {" × "}{item.quantidade}
-                        <span className="text-muted-foreground ml-2">
-                          R$ {((item.precoUnitario ?? 0) * item.quantidade).toFixed(2)}
+                        <span className="font-medium">
+                          {prod?.nome ?? `Produto #${item.idProduto}`}
+                        </span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-6 w-6"
+                            onClick={() =>
+                              updateQuantityMut.mutate({
+                                idItem: item.idItem!,
+                                quantidade: Math.max(1, item.quantidade - 1),
+                              })
+                            }
+                            disabled={
+                              updateQuantityMut.isPending ||
+                              item.quantidade <= 1
+                            }
+                          >
+                            <ChevronDown className="h-3 w-3" />
+                          </Button>
+                          <span className="w-8 text-center">
+                            {item.quantidade}
+                          </span>
+                          <Button
+                            size="icon"
+                            variant="outline"
+                            className="h-6 w-6"
+                            onClick={() =>
+                              updateQuantityMut.mutate({
+                                idItem: item.idItem!,
+                                quantidade: item.quantidade + 1,
+                              })
+                            }
+                            disabled={updateQuantityMut.isPending}
+                          >
+                            <ChevronUp className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <span className="text-muted-foreground ml-2 text-xs">
+                          R${" "}
+                          {(
+                            (item.precoUnitario ?? 0) * item.quantidade
+                          ).toFixed(2)}
                         </span>
                       </div>
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => removeMut.mutate(item.idItem!)}
-                        disabled={removeMut.isPending}
+                        disabled={
+                          removeMut.isPending ||
+                          (pedido.itens?.length ?? 0) === 1
+                        }
+                        title={
+                          (pedido.itens?.length ?? 0) === 1
+                            ? "Não é possível remover o último item. Altere o status do pedido para 'Cancelado' se deseja cancelar o pedido."
+                            : ""
+                        }
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -180,17 +306,22 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
 
               {/* Add item */}
               <div className="flex gap-2 items-end pt-2">
-                <div className="flex-1">
+                <div className="flex-1 max-w-xs">
                   <Select
                     value={String(newItem.idProduto || "")}
-                    onValueChange={(v) => setNewItem({ ...newItem, idProduto: Number(v) })}
+                    onValueChange={(v) =>
+                      setNewItem({ ...newItem, idProduto: Number(v) })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Produto" />
                     </SelectTrigger>
                     <SelectContent>
                       {produtosAtivos.map((p) => (
-                        <SelectItem key={p.idProduto} value={String(p.idProduto)}>
+                        <SelectItem
+                          key={p.idProduto}
+                          value={String(p.idProduto)}
+                        >
                           {p.nome}
                         </SelectItem>
                       ))}
@@ -202,14 +333,19 @@ export default function PedidoDetail({ open, onOpenChange, pedidoId }: Props) {
                   min={1}
                   className="w-20"
                   value={newItem.quantidade}
-                  onChange={(e) => setNewItem({ ...newItem, quantidade: Number(e.target.value) })}
+                  onChange={(e) =>
+                    setNewItem({
+                      ...newItem,
+                      quantidade: Number(e.target.value),
+                    })
+                  }
                 />
                 <Button
                   size="sm"
                   onClick={() => addMut.mutate()}
                   disabled={newItem.idProduto === 0 || addMut.isPending}
                 >
-                  <Plus className="h-3 w-3 mr-1" /> Add
+                  <Plus className="h-3 w-3 mr-1" /> Incluir
                 </Button>
               </div>
             </div>

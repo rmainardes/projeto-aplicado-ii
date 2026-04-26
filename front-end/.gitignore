@@ -3,22 +3,30 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependências e Builds
+node_modules/
+dist/
+target/
+.quarkus/
+bin/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.DS_Store
+
+# --- SEGURANÇA (Chaves RSA) ---
+# Ignora as chaves geradas para o JWT em qualquer subpasta de resources
+**/src/main/resources/*.pem
+# Caso queira ser específico para o back-end:
+back-end/src/main/resources/privateKey.pem
+back-end/src/main/resources/publicKey.pem
+
+# --- CONFIGURAÇÕES LOCAIS ---
+# Ignora arquivos de propriedades que podem conter senhas do Supabase ou banco local
+.env
+.env.local
+back-end/src/main/resources/application-local.properties
+back-end/src/main/resources/application-dev.properties
