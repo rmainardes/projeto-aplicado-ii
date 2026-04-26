@@ -8,7 +8,6 @@ import jakarta.validation.constraints.NotNull;
 import java.util.List;
 
 public class PedidoCriacaoDTO {
-    @NotNull(message = "id_cliente e obrigatorio")
     public Long idCliente;
 
     @NotNull(message = "forma_pagamento e obrigatorio")
