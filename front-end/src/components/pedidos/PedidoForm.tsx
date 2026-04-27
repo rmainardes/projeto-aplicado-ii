@@ -246,8 +246,26 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
   };
 
   const updateItem = (i: number, field: keyof ItemPedidoDTO, value: number) => {
+    if (field === "idProduto") {
+      const existingIndex = itens.findIndex(
+        (item, idx) => idx !== i && item.idProduto === value,
+      );
+
+      if (existingIndex >= 0) {
+        const mergedQuantity =
+          itens[existingIndex].quantidade + itens[i].quantidade;
+        const nextItens = itens.filter((_, idx) => idx !== i);
+        nextItens[existingIndex > i ? existingIndex - 1 : existingIndex] = {
+          ...nextItens[existingIndex > i ? existingIndex - 1 : existingIndex],
+          quantidade: mergedQuantity,
+        };
+        setItens(nextItens);
+        return;
+      }
+    }
+
     const copy = [...itens];
-    copy[i][field] = value;
+    copy[i] = { ...copy[i], [field]: value };
     setItens(copy);
   };
 
@@ -573,8 +591,10 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
                             <SelectItem
                               key={p.idProduto}
                               value={p.idProduto.toString()}
+                              disabled={p.quantidadeEstoque <= 0}
                             >
                               {p.nome} - R$ {p.preco?.toFixed(2)}
+                              {p.quantidadeEstoque <= 0 ? " (Sem estoque)" : ""}
                             </SelectItem>
                           ))}
                         </SelectContent>
