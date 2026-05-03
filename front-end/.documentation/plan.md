@@ -1,4 +1,4 @@
-# Plano: Front-end Food Truck App
+# Front-end Food Truck App
 
 ## Resumo
 
@@ -6,28 +6,29 @@ App React com 4 telas principais (Login, Clientes, Produtos, Pedidos) conectando
 
 ## Arquitetura
 
+```text
 src/
 ├── lib/
-│ └── api.ts # Axios instance (baseURL, interceptor JWT futuro)
+│   └── api.ts          # Axios instance (baseURL, interceptor JWT futuro)
 ├── types/
-│ └── api.ts # Tipos: ClienteDTO, EnderecoDTO, ProdutoDTO, PedidoDTO, enums
+│   └── api.ts          # Tipos: ClienteDTO, EnderecoDTO, ProdutoDTO, PedidoDTO, enums
 ├── pages/
-│ ├── Index.tsx # Dashboard / redirect
-│ ├── Clientes.tsx # CRUD clientes
-│ ├── Enderecos.tsx # CRUD endereços por cliente
-│ ├── Produtos.tsx # CRU produtos + ativar/desativar + filtro
-│ └── Pedidos.tsx # Criar pedido, listar, atualizar status
+│   ├── Index.tsx       # Dashboard / redirect
+│   ├── Clientes.tsx    # CRUD clientes
+│   ├── Enderecos.tsx   # CRUD endereços por cliente
+│   ├── Produtos.tsx    # CRU produtos + ativar/desativar + filtro
+│   └── Pedidos.tsx     # Criar pedido, listar, atualizar status
 ├── components/
-│ ├── Layout.tsx # Sidebar/navbar + conteúdo
-│ ├── clientes/
-│ │ └── ClienteForm.tsx # Dialog form criar/editar
-│ ├── enderecos/
-│ │ └── EnderecoForm.tsx # Dialog form criar/editar com consulta CEP
-│ ├── produtos/
-│ │ └── ProdutoForm.tsx # Dialog form criar/editar
-│ └── pedidos/
-│ ├── PedidoForm.tsx # Dialog criar pedido (selecionar cliente, itens, tipo pedido, endereço delivery, etc.)
-│ └── PedidoDetail.tsx # Visualizar/editar pedido, adicionar/remover itens
+│   ├── Layout.tsx      # Sidebar/navbar + conteúdo
+│   ├── clientes/
+│   │   └── ClienteForm.tsx   # Dialog form criar/editar
+│   ├── enderecos/
+│   │   └── EnderecoForm.tsx  # Dialog form criar/editar com consulta CEP
+│   ├── produtos/
+│   │   └── ProdutoForm.tsx   # Dialog form criar/editar
+│   └── pedidos/
+│       ├── PedidoForm.tsx    # Dialog criar pedido (selecionar cliente, itens, etc.)
+│       └── PedidoDetail.tsx  # Visualizar/editar pedido, adicionar/remover itens
 
 ## Endpoints mapeados
 
