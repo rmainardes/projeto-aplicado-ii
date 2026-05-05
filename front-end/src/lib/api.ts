@@ -16,8 +16,12 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = axios.defaults.headers.common["Authorization"];
-  if (token) config.headers["Authorization"] = token as string;
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete config.headers["Authorization"];
+  }
   return config;
 });
 
