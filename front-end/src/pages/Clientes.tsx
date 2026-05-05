@@ -28,7 +28,10 @@ import ClienteForm from "@/components/clientes/ClienteForm";
 
 export default function Clientes() {
   const qc = useQueryClient();
-  const { data: clientes = [], isLoading } = useQuery({ queryKey: ["clientes"], queryFn: getClientes });
+  const { data: clientes = [], isLoading } = useQuery({
+    queryKey: ["clientes"],
+    queryFn: getClientes,
+  });
 
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
@@ -48,14 +51,19 @@ export default function Clientes() {
   const filtered = clientes.filter(
     (c) =>
       c.nome.toLowerCase().includes(search.toLowerCase()) ||
-      (c.contato?.toLowerCase().includes(search.toLowerCase()) ?? false)
+      (c.contato?.toLowerCase().includes(search.toLowerCase()) ?? false),
   );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-display font-bold">Clientes</h2>
-        <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+        <Button
+          onClick={() => {
+            setEditing(null);
+            setFormOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4 mr-1" /> Novo Cliente
         </Button>
       </div>
@@ -83,20 +91,28 @@ export default function Clientes() {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="text-center text-muted-foreground"
+                >
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={4}
+                  className="text-center text-muted-foreground"
+                >
                   Nenhum cliente encontrado
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((c) => (
                 <TableRow key={c.idCliente}>
-                  <TableCell className="font-mono text-muted-foreground">{c.idCliente}</TableCell>
+                  <TableCell className="font-mono text-muted-foreground">
+                    {c.idCliente}
+                  </TableCell>
                   <TableCell className="font-medium">{c.nome}</TableCell>
                   <TableCell>{c.contato || "—"}</TableCell>
                   <TableCell>
@@ -104,17 +120,22 @@ export default function Clientes() {
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={() => { setEditing(c); setFormOpen(true); }}
+                        onClick={() => {
+                          setEditing(c);
+                          setFormOpen(true);
+                        }}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => setDeleteTarget(c)}
-                      >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      {c.nome !== "CONSUMO NO LOCAL" && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(c)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -131,18 +152,26 @@ export default function Clientes() {
         cliente={editing}
       />
 
-      <AlertDialog open={!!deleteTarget} onOpenChange={() => setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={() => setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir cliente?</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir <strong>{deleteTarget?.nome}</strong>? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir{" "}
+              <strong>{deleteTarget?.nome}</strong>? Esta ação não pode ser
+              desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteTarget?.idCliente && deleteMut.mutate(deleteTarget.idCliente)}
+              onClick={() =>
+                deleteTarget?.idCliente &&
+                deleteMut.mutate(deleteTarget.idCliente)
+              }
             >
               Excluir
             </AlertDialogAction>
