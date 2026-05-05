@@ -471,6 +471,17 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
                       <FormLabel>Endereço de entrega</FormLabel>
                       <Select
                         onValueChange={(v) => {
+                          if (v === "novo") {
+                            // clear any previous values so the form is always blank
+                            setEnderecoForm({});
+                            setEnderecoEmEdicao(null);
+                            setMostrarFormularioEndereco(true);
+                            // don't change selection to a numeric value
+                            field.onChange(undefined);
+                            setEnderecoSelecionadoId(null);
+                            return;
+                          }
+
                           field.onChange(Number(v));
                           setEnderecoSelecionadoId(Number(v) || null);
                         }}
@@ -519,7 +530,11 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
                     type="button"
                     size="sm"
                     variant="outline"
-                    onClick={() => setMostrarFormularioEndereco(true)}
+                    onClick={() => {
+                      setEnderecoForm({});
+                      setEnderecoEmEdicao(null);
+                      setMostrarFormularioEndereco(true);
+                    }}
                   >
                     <Plus className="h-3 w-3 mr-1" />
                     Novo endereço

@@ -1,1 +1,23 @@
-/.idea/
+# IDE
+.idea/
+.vscode/
+
+# Front-end
+front-end/node_modules/
+front-end/dist/
+
+# Back-end / Maven
+back-end/target/
+.mvn/timing.properties
+
+# Logs
+*.log
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
