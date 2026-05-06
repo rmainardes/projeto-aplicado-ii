@@ -51,7 +51,7 @@ public class ProdutoResource {
         produto.descricao = dto.descricao.trim();
         produto.preco = dto.preco;
         produto.quantidadeEstoque = dto.quantidadeEstoque;
-        produto.ativo = dto.ativo;
+        produto.ativo = true;
         produtoRepository.persistAndFlush(produto);
 
         return Response.created(URI.create("/produtos/" + produto.idProduto))
