@@ -23,4 +23,7 @@ public class ProdutoDTO {
     @NotNull(message = "quantidade_estoque e obrigatoria")
     @PositiveOrZero(message = "quantidade_estoque nao pode ser negativa")
     public Integer quantidadeEstoque;
+
+    @NotNull(message = "e preciso informar se o produto esta ativo ou nao")
+    public Boolean ativo;
 }

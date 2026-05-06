@@ -51,6 +51,7 @@ public class ProdutoResource {
         produto.descricao = dto.descricao.trim();
         produto.preco = dto.preco;
         produto.quantidadeEstoque = dto.quantidadeEstoque;
+        produto.ativo = dto.ativo;
         produtoRepository.persistAndFlush(produto);
 
         return Response.created(URI.create("/produtos/" + produto.idProduto))
@@ -84,6 +85,10 @@ public class ProdutoResource {
             produto.quantidadeEstoque = dto.quantidadeEstoque;
         }
 
+        if (dto.ativo != null) {
+            produto.ativo = dto.ativo;
+        }
+
         return toDTO(produto);
     }
 
@@ -106,6 +111,7 @@ public class ProdutoResource {
         dto.descricao = produto.descricao;
         dto.preco = produto.preco != null ? produto.preco : null;
         dto.quantidadeEstoque = produto.quantidadeEstoque;
+        dto.ativo = produto.ativo;
         return dto;
     }
 }
