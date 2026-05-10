@@ -25,12 +25,16 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Plus, Pencil, Trash2, Search } from "lucide-react";
 import ClienteForm from "@/components/clientes/ClienteForm";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Clientes() {
   const qc = useQueryClient();
+  const { token } = useAuth();
+
   const { data: clientes = [], isLoading } = useQuery({
-    queryKey: ["clientes"],
+    queryKey: ["clientes", token],
     queryFn: getClientes,
+    enabled: !!token,
   });
 
   const [search, setSearch] = useState("");

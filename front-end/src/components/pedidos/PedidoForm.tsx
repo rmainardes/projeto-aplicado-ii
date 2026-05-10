@@ -49,6 +49,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, MapPin, Edit3 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const schema = z
   .object({
@@ -85,15 +86,18 @@ interface Props {
 
 export default function PedidoForm({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
+  const { token } = useAuth();
 
   const clientesData = useQuery({
-    queryKey: ["clientes"],
+    queryKey: ["clientes", token],
     queryFn: getClientes,
+    enabled: !!token,
   });
 
   const produtosData = useQuery({
-    queryKey: ["produtos"],
+    queryKey: ["produtos", token],
     queryFn: getProdutos,
+    enabled: !!token,
   });
 
   const produtosAtivos =

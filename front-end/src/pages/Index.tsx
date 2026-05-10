@@ -5,6 +5,7 @@ import { statusPedidoLabels } from "@/types/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Users, ShoppingBag, ClipboardList, DollarSign } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const statusColors: Record<StatusPedido, string> = {
   pendente: "bg-warning text-warning-foreground",
@@ -15,17 +16,23 @@ const statusColors: Record<StatusPedido, string> = {
 };
 
 export default function Index() {
+  const { token } = useAuth();
   const { data: pedidos = [] } = useQuery({
-    queryKey: ["pedidos"],
+    queryKey: ["pedidos", token],
     queryFn: getPedidos,
+    enabled: !!token,
   });
+
   const { data: clientes = [] } = useQuery({
-    queryKey: ["clientes"],
+    queryKey: ["clientes", token],
     queryFn: getClientes,
+    enabled: !!token,
   });
+
   const { data: produtos = [] } = useQuery({
-    queryKey: ["produtos"],
+    queryKey: ["produtos", token],
     queryFn: getProdutos,
+    enabled: !!token,
   });
 
   const today = new Date().toISOString().slice(0, 10);

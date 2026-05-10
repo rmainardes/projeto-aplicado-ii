@@ -22,9 +22,14 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Produtos() {
   const qc = useQueryClient();
-  const { isAdmin } = useAuth();
+  const { isAdmin, token } = useAuth(); // ← adicionar token
   const canManageProducts = isAdmin();
-  const { data: produtos = [], isLoading } = useQuery({ queryKey: ["produtos"], queryFn: getProdutos });
+
+  const { data: produtos = [], isLoading } = useQuery({
+    queryKey: ["produtos", token],
+    queryFn: getProdutos,
+    enabled: !!token,
+  });
 
   const [search, setSearch] = useState("");
   const [showInactive, setShowInactive] = useState(false);
@@ -51,7 +56,7 @@ export default function Produtos() {
     .filter(
       (p) =>
         p.nome.toLowerCase().includes(search.toLowerCase()) ||
-        p.descricao.toLowerCase().includes(search.toLowerCase())
+        p.descricao.toLowerCase().includes(search.toLowerCase()),
     );
 
   return (
@@ -59,7 +64,12 @@ export default function Produtos() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h2 className="text-2xl font-display font-bold">Produtos</h2>
         {canManageProducts && (
-          <Button onClick={() => { setEditing(null); setFormOpen(true); }}>
+          <Button
+            onClick={() => {
+              setEditing(null);
+              setFormOpen(true);
+            }}
+          >
             <Plus className="h-4 w-4 mr-1" /> Novo Produto
           </Button>
         )}
@@ -79,7 +89,9 @@ export default function Produtos() {
             checked={showInactive}
             onCheckedChange={setShowInactive}
           />
-          <Label htmlFor="show-inactive" className="text-sm">Mostrar inativos</Label>
+          <Label htmlFor="show-inactive" className="text-sm">
+            Mostrar inativos
+          </Label>
         </div>
       </div>
 
@@ -93,26 +105,39 @@ export default function Produtos() {
               <TableHead>Preço</TableHead>
               <TableHead>Estoque</TableHead>
               <TableHead>Status</TableHead>
-              {canManageProducts && <TableHead className="w-24">Ações</TableHead>}
+              {canManageProducts && (
+                <TableHead className="w-24">Ações</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={canManageProducts ? 7 : 6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={canManageProducts ? 7 : 6}
+                  className="text-center text-muted-foreground"
+                >
                   Carregando...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={canManageProducts ? 7 : 6} className="text-center text-muted-foreground">
+                <TableCell
+                  colSpan={canManageProducts ? 7 : 6}
+                  className="text-center text-muted-foreground"
+                >
                   Nenhum produto encontrado
                 </TableCell>
               </TableRow>
             ) : (
               filtered.map((p) => (
-                <TableRow key={p.idProduto} className={p.ativo === false ? "opacity-60" : ""}>
-                  <TableCell className="font-mono text-muted-foreground">{p.idProduto}</TableCell>
+                <TableRow
+                  key={p.idProduto}
+                  className={p.ativo === false ? "opacity-60" : ""}
+                >
+                  <TableCell className="font-mono text-muted-foreground">
+                    {p.idProduto}
+                  </TableCell>
                   <TableCell className="font-medium">{p.nome}</TableCell>
                   <TableCell className="hidden md:table-cell max-w-[200px] truncate">
                     {p.descricao}
@@ -120,7 +145,9 @@ export default function Produtos() {
                   <TableCell>R$ {p.preco?.toFixed(2)}</TableCell>
                   <TableCell>{p.quantidadeEstoque}</TableCell>
                   <TableCell>
-                    <Badge variant={p.ativo !== false ? "default" : "secondary"}>
+                    <Badge
+                      variant={p.ativo !== false ? "default" : "secondary"}
+                    >
                       {p.ativo !== false ? "Ativo" : "Inativo"}
                     </Badge>
                   </TableCell>
@@ -130,7 +157,10 @@ export default function Produtos() {
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={() => { setEditing(p); setFormOpen(true); }}
+                          onClick={() => {
+                            setEditing(p);
+                            setFormOpen(true);
+                          }}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -141,7 +171,9 @@ export default function Produtos() {
                           disabled={toggleMut.isPending}
                           title={p.ativo !== false ? "Desativar" : "Reativar"}
                         >
-                          <Power className={`h-4 w-4 ${p.ativo !== false ? "text-destructive" : "text-success"}`} />
+                          <Power
+                            className={`h-4 w-4 ${p.ativo !== false ? "text-destructive" : "text-success"}`}
+                          />
                         </Button>
                       </div>
                     </TableCell>
