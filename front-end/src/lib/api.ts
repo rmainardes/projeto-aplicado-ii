@@ -1,4 +1,5 @@
 import axios from "axios";
+import { logoutGlobal } from "@/context/AuthContext";
 import type {
   ClienteDTO,
   EnderecoResponseDTO,
@@ -24,6 +25,17 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      logoutGlobal();
+      window.location.href = "/login";
+    }
+    return Promise.reject(error);
+  },
+);
 
 // ── Clientes ──
 export const getClientes = () =>
