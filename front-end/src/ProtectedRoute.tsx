@@ -1,11 +1,10 @@
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext";
 
-// Protege qualquer rota que exija login
 export function ProtectedRoute({ children }: { children: JSX.Element }) {
   const { token, ready } = useAuth();
 
-  if (!ready) return null; // ou <LoadingSpinner /> enquanto inicializa
+  if (!ready) return null;
 
   return token ? children : <Navigate to="/login" replace />;
 }

@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, Outlet } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import Layout from "@/components/Layout";
@@ -10,33 +10,30 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./LoginPage";
 import { useAuth } from "@/context/AuthContext";
 
-function ProtectedRoute({ children }: { children: JSX.Element }) {
-  const { token } = useAuth();
-  return token ? children : <Navigate to="/login" replace />;
-}
-
 function ProtectedLayout() {
-  const { token } = useAuth();
-  console.log("token atual:", token); // ← veja no console da Vercel/browser
-  if (!token) return <Navigate to="/login" replace />;
-  return <Layout />;
+    const { token, ready } = useAuth();
+
+    if (!ready) return null;
+    if (!token) return <Navigate to="/login" replace />;
+
+    return <Layout />;
 }
 
 const App = () => (
-  <>
-    <Toaster />
-    <Sonner />
-    <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route element={<ProtectedLayout />}>
-        <Route path="/" element={<Index />} />
-        <Route path="/clientes" element={<Clientes />} />
-        <Route path="/produtos" element={<Produtos />} />
-        <Route path="/pedidos" element={<Pedidos />} />
-      </Route>
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  </>
+    <>
+        <Toaster />
+        <Sonner />
+        <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route element={<ProtectedLayout />}>
+                <Route path="/" element={<Index />} />
+                <Route path="/clientes" element={<Clientes />} />
+                <Route path="/produtos" element={<Produtos />} />
+                <Route path="/pedidos" element={<Pedidos />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+        </Routes>
+    </>
 );
 
 export default App;
