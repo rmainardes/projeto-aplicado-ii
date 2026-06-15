@@ -198,6 +198,7 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
+    mode: "onChange",
     defaultValues: {
       idCliente: 0,
       formaPagamento: "",
@@ -562,15 +563,25 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
             <FormField
               control={form.control}
               name="observacao"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Observação</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Opcional..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                const hasError = !!form.formState.errors.observacao;
+                return (
+                  <FormItem>
+                    <FormLabel>Observação</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Opcional..."
+                        maxLength={200}
+                        className={
+                          hasError ? "border-red-500 focus:ring-red-500" : ""
+                        }
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {/* Itens */}
@@ -657,7 +668,10 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button
+                type="submit"
+                disabled={mutation.isPending || !form.formState.isValid}
+              >
                 {mutation.isPending ? "Criando..." : "Criar Pedido"}
               </Button>
             </DialogFooter>
