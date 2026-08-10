@@ -3,6 +3,7 @@ package br.com.projaplicado.endereco;
 import br.com.projaplicado.endereco.api.EnderecoRequestDTO;
 import br.com.projaplicado.endereco.api.EnderecoResponseDTO;
 import br.com.projaplicado.endereco.service.EnderecoService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -16,6 +17,7 @@ import java.util.List;
 @Path("/clientes/{id_cliente}/enderecos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed({"ADMIN", "FUNCIONARIO"})
 public class EnderecoResource {
 
     @Inject

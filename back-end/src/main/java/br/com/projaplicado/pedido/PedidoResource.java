@@ -8,6 +8,7 @@ import br.com.projaplicado.pedido.api.StatusPedido;
 import br.com.projaplicado.pedido.domain.Pedido;
 import br.com.projaplicado.pedido.domain.repository.PedidoRepository;
 import br.com.projaplicado.pedido.service.PedidoService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @Path("/pedidos")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed({"ADMIN", "FUNCIONARIO"})
 public class PedidoResource {
 
     @Inject

@@ -1,5 +1,6 @@
 package br.com.projaplicado.health;
 
+import jakarta.annotation.security.PermitAll;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
@@ -12,6 +13,7 @@ import java.util.Map;
 public class HealthResource {
 
     @GET
+    @PermitAll
     public Response ping() {
         return Response.ok(Map.of("status", "ok")).build();
     }

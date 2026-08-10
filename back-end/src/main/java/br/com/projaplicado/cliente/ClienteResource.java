@@ -3,6 +3,7 @@ package br.com.projaplicado.cliente;
 import br.com.projaplicado.cliente.api.ClienteDTO;
 import br.com.projaplicado.cliente.domain.Cliente;
 import br.com.projaplicado.cliente.domain.repository.ClienteRepository;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 @Path("/clientes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed({"ADMIN", "FUNCIONARIO"})
 public class ClienteResource {
 
     @Inject
