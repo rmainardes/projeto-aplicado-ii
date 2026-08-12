@@ -14,16 +14,9 @@ import type {
 const api = axios.create({
   baseURL: "/api",
   headers: { "Content-Type": "application/json" },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers["Authorization"] = `Bearer ${token}`;
-  } else {
-    delete config.headers["Authorization"];
-  }
-  return config;
+  // O token de sessão vive num cookie HttpOnly (ver AuthContext/AuthResource);
+  // isso faz o navegador enviá-lo automaticamente em toda requisição.
+  withCredentials: true,
 });
 
 api.interceptors.response.use(

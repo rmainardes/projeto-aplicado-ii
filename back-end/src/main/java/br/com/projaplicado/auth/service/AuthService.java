@@ -17,6 +17,7 @@ import java.util.Set;
 public class AuthService {
 
     private static final int BCRYPT_ROUNDS = 12;
+    public static final int TOKEN_TTL_SECONDS = 28800; // 8 horas
 
     @Transactional
     public LoginResponse login(LoginRequest req) {
@@ -41,7 +42,7 @@ public class AuthService {
                 .claim("email", usuario.email)
                 .claim("role", usuario.role.name())
                 .groups(Set.of(usuario.role.name()))
-                .expiresIn(28800) // 8 horas
+                .expiresIn(TOKEN_TTL_SECONDS)
                 .sign();
 
         return new LoginResponse(token, new UsuarioDTO(

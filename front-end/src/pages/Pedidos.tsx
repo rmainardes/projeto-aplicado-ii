@@ -32,18 +32,18 @@ const statusColors: Record<StatusPedido, string> = {
 };
 
 export default function Pedidos() {
-  const { token } = useAuth(); // ← adicionar
+  const { usuario } = useAuth();
 
   const { data: pedidos = [], isLoading } = useQuery({
-    queryKey: ["pedidos", token], // ← token na chave
+    queryKey: ["pedidos", usuario?.id],
     queryFn: getPedidos,
-    enabled: !!token, // ← só executa com token
+    enabled: !!usuario,
   });
 
   const { data: clientes = [] } = useQuery({
-    queryKey: ["clientes", token],
+    queryKey: ["clientes", usuario?.id],
     queryFn: getClientes,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const [search, setSearch] = useState("");
