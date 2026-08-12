@@ -209,6 +209,7 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
   });
 
   const tipoPedido = form.watch("tipoPedido");
+  const idCliente = form.watch("idCliente");
   const isLocal = tipoPedido === "local";
   const isDelivery = tipoPedido === "delivery";
 
@@ -223,8 +224,6 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
 
   // Carregar endereços quando cliente e tipoPedido mudam
   useEffect(() => {
-    const idCliente = form.watch("idCliente");
-
     if (idCliente && tipoPedido === "delivery") {
       getEnderecosCliente(idCliente).then((res) => {
         setEnderecos(res.data);
@@ -240,7 +239,7 @@ export default function PedidoForm({ open, onOpenChange }: Props) {
       setEnderecoSelecionadoId(null);
       form.setValue("enderecoEntregaId", undefined);
     }
-  }, [form.watch("idCliente"), form.watch("tipoPedido")]);
+  }, [form, idCliente, tipoPedido]);
 
   const addItem = () => {
     setItens([...itens, { idProduto: 0, quantidade: 1 }]);
