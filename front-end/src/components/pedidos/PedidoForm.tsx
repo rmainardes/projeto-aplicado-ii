@@ -86,18 +86,18 @@ interface Props {
 
 export default function PedidoForm({ open, onOpenChange }: Props) {
   const qc = useQueryClient();
-  const { token } = useAuth();
+  const { usuario } = useAuth();
 
   const clientesData = useQuery({
-    queryKey: ["clientes", token],
+    queryKey: ["clientes", usuario?.id],
     queryFn: getClientes,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const produtosData = useQuery({
-    queryKey: ["produtos", token],
+    queryKey: ["produtos", usuario?.id],
     queryFn: getProdutos,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const produtosAtivos =

@@ -16,23 +16,23 @@ const statusColors: Record<StatusPedido, string> = {
 };
 
 export default function Index() {
-  const { token } = useAuth();
+  const { usuario } = useAuth();
   const { data: pedidos = [] } = useQuery({
-    queryKey: ["pedidos", token],
+    queryKey: ["pedidos", usuario?.id],
     queryFn: getPedidos,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const { data: clientes = [] } = useQuery({
-    queryKey: ["clientes", token],
+    queryKey: ["clientes", usuario?.id],
     queryFn: getClientes,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const { data: produtos = [] } = useQuery({
-    queryKey: ["produtos", token],
+    queryKey: ["produtos", usuario?.id],
     queryFn: getProdutos,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const today = new Date().toISOString().slice(0, 10);

@@ -29,12 +29,12 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Clientes() {
   const qc = useQueryClient();
-  const { token } = useAuth();
+  const { usuario } = useAuth();
 
   const { data: clientes = [], isLoading } = useQuery({
-    queryKey: ["clientes", token],
+    queryKey: ["clientes", usuario?.id],
     queryFn: getClientes,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const [search, setSearch] = useState("");

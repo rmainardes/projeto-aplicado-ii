@@ -11,10 +11,10 @@ import LoginPage from "./LoginPage";
 import { useAuth } from "@/context/AuthContext";
 
 function ProtectedLayout() {
-    const { token, ready } = useAuth();
+    const { usuario, ready } = useAuth();
 
     if (!ready) return null;
-    if (!token) return <Navigate to="/login" replace />;
+    if (!usuario) return <Navigate to="/login" replace />;
 
     return <Layout />;
 }

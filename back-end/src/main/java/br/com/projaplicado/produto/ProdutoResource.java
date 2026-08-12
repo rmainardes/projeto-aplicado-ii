@@ -25,6 +25,7 @@ public class ProdutoResource {
     ProdutoRepository produtoRepository;
 
     @GET
+    @RolesAllowed({"ADMIN", "FUNCIONARIO"})
     public List<ProdutoDTO> listar() {
         return produtoRepository.listAll().stream()
                 .map(this::toDTO)

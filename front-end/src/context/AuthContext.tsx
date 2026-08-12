@@ -18,7 +18,6 @@ interface Usuario {
 
 interface AuthCtx {
   usuario: Usuario | null;
-  token: string | null;
   ready: boolean;
   login: (email: string, senha: string) => Promise<void>;
   logout: () => void;
@@ -27,69 +26,47 @@ interface AuthCtx {
 
 export let logoutGlobal: () => void = () => {};
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
-
-function isTokenExpired(token: string): boolean {
-  try {
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
-  }
-}
-
-function getStoredAuth(): { token: string | null; usuario: Usuario | null } {
-  const token = localStorage.getItem("token");
-  const u = localStorage.getItem("usuario");
-
-  if (!token || isTokenExpired(token)) {
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
-    return { token: null, usuario: null };
-  }
-
-  return { token, usuario: u ? JSON.parse(u) : null };
-}
-
 // ── Context ───────────────────────────────────────────────────────────────────
+// O JWT vive num cookie HttpOnly setado pelo back-end (não é mais lido/guardado
+// em localStorage, pra não ficar acessível a um XSS). Sem acesso ao token, o
+// front não sabe se a sessão é válida sem perguntar ao servidor — por isso o
+// estado de autenticação é hidratado via GET /auth/me a cada carregamento.
 
 const AuthContext = createContext<AuthCtx | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const stored = getStoredAuth();
-
-  const [token, setToken] = useState<string | null>(stored.token);
-  const [usuario, setUsuario] = useState<Usuario | null>(stored.usuario);
+  const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [ready, setReady] = useState(false);
 
   const logout = () => {
-    setToken(null);
     setUsuario(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("usuario");
+    axios.post("/api/auth/logout", null, { withCredentials: true }).catch(() => {});
   };
 
   const login = async (email: string, senha: string) => {
-    const { data } = await axios.post("/api/auth/login", { email, senha });
-    setToken(data.token);
-    setUsuario(data.usuario);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("usuario", JSON.stringify(data.usuario));
+    const { data } = await axios.post(
+      "/api/auth/login",
+      { email, senha },
+      { withCredentials: true },
+    );
+    setUsuario(data);
   };
 
   const isAdmin = () => usuario?.role === "ADMIN";
 
-  // Registra o logout para uso externo (interceptor do axios)
-  // e sinaliza que o AuthProvider terminou de inicializar
   useEffect(() => {
+    // Registra o logout para uso externo (interceptor do axios em lib/api.ts)
     logoutGlobal = logout;
-    setReady(true);
+
+    axios
+      .get("/api/auth/me", { withCredentials: true })
+      .then(({ data }) => setUsuario(data))
+      .catch(() => setUsuario(null))
+      .finally(() => setReady(true));
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ usuario, token, ready, login, logout, isAdmin }}
-    >
+    <AuthContext.Provider value={{ usuario, ready, login, logout, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

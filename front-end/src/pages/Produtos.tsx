@@ -22,13 +22,13 @@ import { useAuth } from "@/context/AuthContext";
 
 export default function Produtos() {
   const qc = useQueryClient();
-  const { isAdmin, token } = useAuth(); // ← adicionar token
+  const { isAdmin, usuario } = useAuth();
   const canManageProducts = isAdmin();
 
   const { data: produtos = [], isLoading } = useQuery({
-    queryKey: ["produtos", token],
+    queryKey: ["produtos", usuario?.id],
     queryFn: getProdutos,
-    enabled: !!token,
+    enabled: !!usuario,
   });
 
   const [search, setSearch] = useState("");
