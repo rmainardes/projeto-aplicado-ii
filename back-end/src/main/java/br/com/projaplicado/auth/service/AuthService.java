@@ -6,6 +6,8 @@ import br.com.projaplicado.auth.domain.Usuario;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.ForbiddenException;
+import jakarta.ws.rs.NotAuthorizedException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.mindrot.jbcrypt.BCrypt;
@@ -22,17 +24,14 @@ public class AuthService {
     @Transactional
     public LoginResponse login(LoginRequest req) {
         Usuario usuario = Usuario.findByEmail(req.email)
-                .orElseThrow(() -> new WebApplicationException(
-                        Response.status(401).entity("{\"message\":\"Credenciais inválidas\"}").build()));
+                .orElseThrow(() -> new NotAuthorizedException("Credenciais inválidas", "Bearer"));
 
         if (!usuario.ativo)
-            throw new WebApplicationException(
-                    Response.status(403).entity("{\"message\":\"Usuário desativado\"}").build());
+            throw new ForbiddenException("Usuário desativado");
 
         // BCrypt verifica a senha contra o hash salvo
         if (!BCrypt.checkpw(req.senha, usuario.senhaHash))
-            throw new WebApplicationException(
-                    Response.status(401).entity("{\"message\":\"Credenciais inválidas\"}").build());
+            throw new NotAuthorizedException("Credenciais inválidas", "Bearer");
 
         usuario.ultimoLogin = LocalDateTime.now();
 
@@ -52,8 +51,7 @@ public class AuthService {
     @Transactional
     public UsuarioDTO criarUsuario(String nome, String email, String senhaPlain, Usuario.Role role) {
         if (Usuario.findByEmail(email).isPresent())
-            throw new WebApplicationException(
-                    Response.status(409).entity("{\"message\":\"Email já cadastrado\"}").build());
+            throw new WebApplicationException("Email já cadastrado", Response.Status.CONFLICT);
 
         Usuario u = new Usuario();
         u.nome = nome; u.email = email;

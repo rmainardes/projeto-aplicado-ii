@@ -1,6 +1,7 @@
 package br.com.projaplicado.cliente;
 
 import br.com.projaplicado.cliente.api.ClienteDTO;
+import br.com.projaplicado.cliente.api.ClienteMapper;
 import br.com.projaplicado.cliente.domain.Cliente;
 import br.com.projaplicado.cliente.domain.repository.ClienteRepository;
 import jakarta.annotation.security.RolesAllowed;
@@ -23,11 +24,13 @@ public class ClienteResource {
     @Inject
     ClienteRepository clienteRepository;
 
+    @Inject
+    ClienteMapper clienteMapper;
 
     @GET
     public List<ClienteDTO> listar() {
         return clienteRepository.listAll().stream()
-                .map(this::toDTO)
+                .map(clienteMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
@@ -45,7 +48,7 @@ public class ClienteResource {
         if (cliente == null) {
             throw new NotFoundException("Cliente não encontrado: " + idCliente);
         }
-        return toDTO(cliente);
+        return clienteMapper.toDTO(cliente);
     }
 
     @GET
@@ -71,7 +74,7 @@ public class ClienteResource {
         clienteRepository.persistAndFlush(cliente);
 
         return Response.created(URI.create("/clientes/" + cliente.idCliente))
-                .entity(toDTO(cliente))
+                .entity(clienteMapper.toDTO(cliente))
                 .build();
     }
 
@@ -92,7 +95,7 @@ public class ClienteResource {
             cliente.contato = normalizeContato(dto.contato);
         }
 
-        return toDTO(cliente);
+        return clienteMapper.toDTO(cliente);
     }
 
     @DELETE
@@ -103,14 +106,6 @@ public class ClienteResource {
         if (!deletado) {
             throw new NotFoundException("Cliente não encontrado: " + idCliente);
         }
-    }
-
-    private ClienteDTO toDTO(Cliente c) {
-        ClienteDTO dto = new ClienteDTO();
-        dto.idCliente = c.idCliente;
-        dto.nome = c.nome;
-        dto.contato = c.contato;
-        return dto;
     }
 
     private String normalizeContato(String contato) {
